@@ -1,20 +1,25 @@
-# Exotic Café - Management System
+# Exotic Café - Collaborative Social Dining Platform
 
-A premium, real-time café management application built with React, Node.js, and MongoDB.
+A premium, real-time social dining and café management platform built with React, Node.js, and MongoDB/Supabase. Customers scan a table QR code to start a collaborative table session, invite friends, vote on dishes, order together via a shared cart, split the bill, and track their order.
 
 ## 🚀 Quick Start
 
 1. **Prerequisites**: Ensure you have Node.js and MongoDB installed.
 2. **Setup Database**:
    - Create a local MongoDB database or use MongoDB Atlas.
-   - Put your connection URI under `MONGODB_URI` in the `.env` file.
+   - Put your connection URI under `MONGODB_URI` in the `server/.env` file.
 3. **Setup Backend**:
    - `cd server`
    - `npm install`
    - `node server.js` (Running on port 3001)
-4. **Setup Frontend**:
+4. **Setup Simple Website**:
+   - `cd website`
    - `npm install`
    - `npm run dev` (Running on port 5173)
+5. **Setup Table Web App**:
+   - `cd webapp`
+   - `npm install`
+   - `npm run dev` (Running on port 5174)
 
 ## 📱 Key Features
 

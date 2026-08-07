@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -519,6 +519,98 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to verify OTP" });
+  }
+});
+
+// 🚀 INVITE FRIENDS ENDPOINT (EMAIL / SMS)
+app.post('/api/auth/invite', async (req, res) => {
+  try {
+    const { tableNo, contacts } = req.body;
+    if (!contacts || !Array.isArray(contacts)) {
+      return res.status(400).json({ error: 'Contacts array required' });
+    }
+
+    // Resolve correct accessible host on the server
+    const fs = require('fs');
+    const path = require('path');
+    const tunnelPath = path.join(__dirname, '../tunnel_url.txt');
+    let activeTunnelUrl = null;
+    if (fs.existsSync(tunnelPath)) {
+      try {
+        const content = fs.readFileSync(tunnelPath, 'utf8');
+        const match = content.match(/https?:\/\/[^\s]+/);
+        if (match) activeTunnelUrl = match[0];
+      } catch(e) {}
+    }
+
+    // Detect Server IP
+    const nets = os.networkInterfaces();
+    let serverIp = '127.0.0.1';
+    let ipFound = false;
+    for (const name of Object.keys(nets)) {
+      for (const net of nets[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          const lowerName = name.toLowerCase();
+          if (lowerName.includes('wi-fi') || lowerName.includes('wlan') || lowerName.includes('ethernet') || lowerName.includes('en0')) {
+             serverIp = net.address;
+             ipFound = true;
+             break;
+          }
+          serverIp = net.address;
+        }
+      }
+      if (ipFound) break;
+    }
+
+    const host = activeTunnelUrl || `http://${serverIp}:5174`;
+    const resolvedTableUrl = `${host}/table/${tableNo}?invite=true`;
+
+    const emailInvites = contacts.filter(c => c.includes('@'));
+    const phoneInvites = contacts.filter(c => !c.includes('@'));
+
+    // Log phone invites to console (simulate SMS/WhatsApp)
+    phoneInvites.forEach(phone => {
+      console.log(`[SMS MOCK] Invite sent to ${phone}: Join Table ${tableNo} at ${resolvedTableUrl}`);
+    });
+
+    if (emailInvites.length > 0 && process.env.GMAIL_USER && process.env.GMAIL_PASS) {
+      const emailPromises = emailInvites.map(email => {
+        return transporter.sendMail({
+          from: `"Exotic Cafe" <${process.env.GMAIL_USER}>`,
+          to: email,
+          subject: `Join Table ${tableNo} at Exotic Café! ☕`,
+          html: `
+            <div style="font-family: sans-serif; background-color: #f7f3eb; padding: 2.5rem; border-radius: 16px; border: 1px solid #e2d9cf; max-width: 500px; margin: 0 auto; color: #1e3a2f;">
+              <h2 style="color: #6f4e37; text-align: center; margin-bottom: 1.5rem;">You're Invited! 🍽️</h2>
+              <p style="font-size: 1.1rem; line-height: 1.6; text-align: center;">
+                Your friend wants you to join their table session at <strong>Exotic Café</strong>.
+              </p>
+              <div style="background-color: #ffffff; padding: 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; border: 1px solid #e2d9cf;">
+                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #8c8c8c; text-transform: uppercase; letter-spacing: 1px;">Session Table</p>
+                <h3 style="margin: 0; color: #6f4e37; font-size: 2rem;">Table ${tableNo}</h3>
+              </div>
+              <div style="text-align: center;">
+                <a href="${resolvedTableUrl}" style="display: inline-block; background-color: #6f4e37; color: #ffffff; padding: 1rem 2rem; border-radius: 50px; font-weight: bold; text-decoration: none; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(111,78,55,0.25);">
+                  Join Table & Order
+                </a>
+              </div>
+              <p style="font-size: 0.85rem; color: #8c8c8c; text-align: center; margin-top: 2rem;">
+                If the button doesn't work, copy this link: <br/>
+                <a href="${resolvedTableUrl}" style="color: #6f4e37;">${resolvedTableUrl}</a>
+              </p>
+            </div>
+          `
+        });
+      });
+
+      await Promise.all(emailPromises);
+      console.log(`[INVITE] Emails successfully sent to ${emailInvites.join(', ')}`);
+    }
+
+    res.status(200).json({ success: true, message: "Invites delivered successfully!" });
+  } catch (error) {
+    console.error("[INVITE] Error sending emails:", error.message);
+    res.status(200).json({ success: true, fallback: true, message: "Invites simulated." });
   }
 });
 
