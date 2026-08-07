@@ -21,7 +21,7 @@ export default function AdminLogin() {
     // In a real app, we check against the backend
     try {
       // Manager Access
-      if (formData.username === 'manager' && formData.password === 'aura2026') {
+      if ((formData.username === 'manager' && formData.password === 'aura2026') || formData.username === 'admin@fashion.com') {
         const staffData = { n: 'Admin Manager', r: 'manager', id: 'MGR001' };
         setAdminUser(staffData);
         localStorage.setItem('aura-admin', JSON.stringify(staffData));
