@@ -1,0 +1,8 @@
+{
+  "name": "exotic-cafe-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd webapp && npm install && npm run build && cp -R dist ../dist"
+  }
+}
