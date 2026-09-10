@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Camera, ArrowRight, Download, Smartphone, QrCode, 
@@ -245,7 +245,7 @@ export default function Landing() {
           <div style={{ order: 2 }}>
             <h2 style={{ fontSize: '2.5rem', color: 'var(--primary-color)', marginBottom: '1.5rem', fontFamily: 'var(--font-serif)' }}>Our Café Story</h2>
             <p style={{ color: 'var(--text-muted)', lineHeight: '1.8', marginBottom: '1.5rem' }}>
-              Established in 2026, Exotic Café started with a simple vision: to create an oasis for coffee lovers where divine taste meets modern convenience. 
+              Established in 2026, TableHive started with a simple vision: to create an oasis for coffee lovers where divine taste meets modern convenience. 
             </p>
             <p style={{ color: 'var(--text-muted)', lineHeight: '1.8', marginBottom: '2rem' }}>
               We source single-origin specialty beans from high-altitude estates globally, roasting them precisely in-house to unlock unique, chocolatey, and floral flavor notes.

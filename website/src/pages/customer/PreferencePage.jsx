@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, User, Phone, Users, Clock, Sparkles } from 'lucide-react';
 import { useStore } from '../../StoreContext';
@@ -61,7 +61,7 @@ export default function PreferencePage() {
               Book a Table
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
-              Reserve your premium dining spot at Exotic Café
+              Reserve your premium dining spot at TableHive
             </p>
           </div>
 

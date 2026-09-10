@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Share2, Heart } from 'lucide-react';
 import { useStore } from '../../StoreContext';
@@ -13,8 +13,8 @@ export default function ThankYou() {
 
   const handleShare = async () => {
     const shareData = {
-      title: 'Exotic Cafe experience!',
-      text: `I just had an amazing coffee at Exotic Cafe! Check it out.`,
+      title: 'TableHive experience!',
+      text: `I just had an amazing coffee at TableHive! Check it out.`,
       url: window.location.origin
     };
     try {

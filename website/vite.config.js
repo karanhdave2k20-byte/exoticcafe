@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+﻿import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       manifest: {
-        name: 'Exotic Cafe App',
-        short_name: 'Exotic Cafe',
+        name: 'TableHive App',
+        short_name: 'TableHive',
         description: 'Modern Premium Cafe Ordering Experience',
         theme_color: '#d4a373',
         background_color: '#0d0d0d',

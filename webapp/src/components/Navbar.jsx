@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, User, Calendar, Info, Phone, Menu as MenuIcon, X, Moon, Sun, Coffee, ChevronLeft } from 'lucide-react';
 import { useStore } from '../StoreContext';
@@ -76,8 +76,8 @@ export default function Navbar() {
             </button>
           )}
           <Link to={isWebApp ? '/menu' : '/'} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'var(--font-serif)', color: isHome ? '#C8A165' : 'var(--primary-color)' }}>
-            <img src="/logo.png" alt="Exotic Cafe" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
-            <span>Exotic Café</span>
+            <img src="/logo.png" alt="TableHive" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
+            <span>TableHive</span>
           </Link>
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, User, Phone, Users, Clock, Sparkles } from 'lucide-react';
 import { useStore } from '../../StoreContext';
@@ -15,6 +15,7 @@ export default function PreferencePage() {
   const [time, setTime] = useState('');
   const [guests, setGuests] = useState(tableInfo?.peopleCount || 2);
   const [area, setArea] = useState('Lounge');
+  const [entertainment, setEntertainment] = useState('None');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -28,6 +29,7 @@ export default function PreferencePage() {
       time: time || new Date().toTimeString().split(' ')[0].substring(0, 5),
       guests: guests || tableInfo?.peopleCount || 1,
       area,
+      entertainment,
       tableNo: tableInfo?.tableNo || null,
       createdAt: new Date()
     };
@@ -63,7 +65,7 @@ export default function PreferencePage() {
               {isInPerson ? 'Seating Vibe' : 'Book a Table'}
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
-              {isInPerson ? 'Choose your preferred area vibe at Table ' + tableInfo.tableNo : 'Reserve your premium dining spot at Exotic Café'}
+              {isInPerson ? 'Choose your preferred area vibe at Table ' + tableInfo.tableNo : 'Reserve your premium dining spot at TableHive'}
             </p>
           </div>
 
@@ -154,6 +156,22 @@ export default function PreferencePage() {
                 <option value="Terrace">Outdoor Terrace 🌿</option>
                 <option value="Window">Window View 🪟</option>
                 <option value="Bar">Coffee Bar Counter ☕</option>
+              </select>
+            </div>
+
+            {/* Entertainment Preference */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Select Entertainment Preference:</label>
+              <select 
+                value={entertainment} 
+                onChange={(e) => setEntertainment(e.target.value)}
+                style={{ padding: '0.8rem', fontSize: '1rem', width: '100%', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-input)' }}
+              >
+                <option value="None">Just ambient music 🎵</option>
+                <option value="Cricket">Live Cricket 🏏</option>
+                <option value="ShortMovie">Short Movies 🎬</option>
+                <option value="News">News Broadcast 📰</option>
+                <option value="Songs">Popular Songs 🎶</option>
               </select>
             </div>
 

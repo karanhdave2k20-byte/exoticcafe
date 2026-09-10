@@ -1,4 +1,4 @@
-# Exotic Café - Collaborative Social Dining Platform
+﻿# TableHive - Collaborative Social Dining Platform
 
 A premium, real-time social dining and café management platform built with React, Node.js, and MongoDB/Supabase. Customers scan a table QR code to start a collaborative table session, invite friends, vote on dishes, order together via a shared cart, split the bill, and track their order.
 

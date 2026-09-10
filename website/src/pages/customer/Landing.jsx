@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Camera, ArrowRight, Download, Smartphone, QrCode, 
@@ -149,7 +149,7 @@ export default function Landing() {
           <div>
             <h2 style={{ fontSize: '2.2rem', color: 'var(--primary-color)', marginBottom: '1.2rem', fontFamily: 'var(--font-serif)' }}>Seamless Table Ordering</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: '1.7', fontSize: '1.05rem' }}>
-              At Exotic Café, we've revolutionized dining. Scan the unique QR code on your table to instantly join a collaborative ordering session with your table mates, call the waiter, play games, and split the bill.
+              At TableHive, we've revolutionized dining. Scan the unique QR code on your table to instantly join a collaborative ordering session with your table mates, call the waiter, play games, and split the bill.
             </p>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button className="btn btn-primary" onClick={() => navigate('/menu')} style={{ flex: 1, padding: '1rem' }}>
@@ -201,7 +201,7 @@ export default function Landing() {
           <div style={{ order: 2 }}>
             <h2 style={{ fontSize: '2.5rem', color: 'var(--primary-color)', marginBottom: '1.5rem', fontFamily: 'var(--font-serif)' }}>Our Café Story</h2>
             <p style={{ color: 'var(--text-muted)', lineHeight: '1.8', marginBottom: '1.5rem' }}>
-              Established in 2026, Exotic Café started with a simple vision: to create an oasis for coffee lovers where divine taste meets modern convenience. 
+              Established in 2026, TableHive started with a simple vision: to create an oasis for coffee lovers where divine taste meets modern convenience. 
             </p>
             <p style={{ color: 'var(--text-muted)', lineHeight: '1.8', marginBottom: '2rem' }}>
               We source single-origin specialty beans from high-altitude estates globally, roasting them precisely in-house to unlock unique, chocolatey, and floral flavor notes.

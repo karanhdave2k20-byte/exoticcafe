@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, User, Sun, Moon, Menu as MenuIcon, X, ChevronLeft, LogOut } from 'lucide-react';
 import { useStore } from '../StoreContext';
@@ -111,8 +111,8 @@ const WebAppHeader = () => {
               color: 'var(--primary-color)',
             }}
           >
-            <img src="/logo.png" alt="Exotic Cafe" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
-            <span className="brand-text">Exotic Café</span>
+            <img src="/logo.png" alt="TableHive" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
+            <span className="brand-text">TableHive</span>
           </Link>
         </div>
 

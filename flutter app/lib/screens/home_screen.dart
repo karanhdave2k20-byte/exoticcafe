@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'menu_screen.dart';
 import 'cart_screen.dart';
@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         title: Text(
-          'Exotic Café',
+          'TableHive',
           style: GoogleFonts.playfairDisplay(
             color: const Color(0xFFD4A853),
             fontWeight: FontWeight.bold,

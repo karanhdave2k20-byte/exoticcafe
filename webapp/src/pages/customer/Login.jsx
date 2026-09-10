@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, User, Mail, Lock, KeyRound, Globe, Chrome } from 'lucide-react';
 import { useStore } from '../../StoreContext';
@@ -321,7 +321,7 @@ export default function Login() {
                 Sign in with Google
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                to continue to Exotic Café
+                to continue to TableHive
               </p>
             </div>
 

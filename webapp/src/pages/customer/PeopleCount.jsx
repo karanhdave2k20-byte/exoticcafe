@@ -8,19 +8,27 @@ import WebAppHeader from '../../components/WebAppHeader';
 export default function PeopleCount() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tableInfo, setTableInfo, showToast } = useStore();
+  const { tableInfo, setTableInfo, showToast, user } = useStore();
   
   const searchParams = new URLSearchParams(location.search);
   const step = parseInt(searchParams.get('step') || '1');
 
   const [count, setCount] = useState(tableInfo?.peopleCount || 1);
-  const [names, setNames] = useState(tableInfo?.guestNames || ['']);
+  const [names, setNames] = useState(() => {
+    if (tableInfo?.guestNames && tableInfo.guestNames.length > 0) {
+      return tableInfo.guestNames;
+    }
+    return [user?.n || ''];
+  });
 
   const handleNextStep = () => {
     if (names.length !== count) {
       const newNames = Array(count).fill('');
       for (let i = 0; i < Math.min(names.length, count); i++) {
         newNames[i] = names[i];
+      }
+      if (newNames[0] === '' && user?.n) {
+        newNames[0] = user.n;
       }
       setNames(newNames);
     }

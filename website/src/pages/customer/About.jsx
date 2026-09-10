@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Sparkles, Heart, Users, Award, BookOpen } from 'lucide-react';
 import WebsiteNavbar from '../../components/WebsiteNavbar';
 import Footer from '../../components/Footer';
@@ -21,7 +21,7 @@ export default function About() {
             <Award size={36} color="var(--primary-color)" />
           </div>
           <h1 style={{ fontSize: '3rem', fontFamily: 'var(--font-serif)', color: 'var(--primary-color)', margin: '0 0 1rem 0' }}>
-            About Exotic Café
+            About TableHive
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
             Brewing perfection daily since 2026. Every bean tells a story of sustainability and rich artisanal roasting.
@@ -33,7 +33,7 @@ export default function About() {
           <div>
             <h2 style={{ fontSize: '2rem', color: 'var(--primary-color)', marginBottom: '1.2rem', fontFamily: 'var(--font-serif)' }}>Our Story</h2>
             <p style={{ color: 'var(--text-muted)', lineHeight: '1.8', marginBottom: '1.2rem' }}>
-              Exotic Café was born from a desire to escape the commercial rush and return to the simple pleasure of slow-drip, perfectly-roasted specialty coffee. 
+              TableHive was born from a desire to escape the commercial rush and return to the simple pleasure of slow-drip, perfectly-roasted specialty coffee. 
             </p>
             <p style={{ color: 'var(--text-muted)', lineHeight: '1.8' }}>
               We source directly from eco-friendly Arabica and Robusta plantations in Ethiopia, Colombia, and Sumatra, paying fair trade wages to secure the top 1% harvest.

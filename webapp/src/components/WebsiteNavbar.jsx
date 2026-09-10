@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu as MenuIcon, X } from 'lucide-react';
 
@@ -15,8 +15,8 @@ const WebsiteNavbar = () => {
         
         {/* Brand logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'var(--font-serif)', color: isHome ? '#C8A165' : 'var(--primary-color)' }}>
-          <img src="/logo.png" alt="Exotic Cafe" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
-          <span>Exotic Café</span>
+          <img src="/logo.png" alt="TableHive" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
+          <span>TableHive</span>
         </Link>
 
         {/* Desktop Navigation Links */}

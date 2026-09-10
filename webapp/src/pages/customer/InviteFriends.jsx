@@ -55,7 +55,7 @@ export default function InviteFriends() {
   const handleSendInvites = async () => {
     const validContacts = contacts.filter(c => c.trim() !== '');
     if (validContacts.length === 0) {
-      showToast('Add at least one email or phone number to invite friends.', 'error');
+      showToast('Add at least one email address to invite friends.', 'error');
       return;
     }
 
@@ -254,32 +254,19 @@ export default function InviteFriends() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
           {contacts.map((contact, index) => (
             <div key={index} style={{ position: 'relative' }}>
-              {contact.includes('@') || contact === '' ? (
-                <Mail
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    top: '14px',
-                    left: '14px',
-                    color: 'var(--text-muted)',
-                    pointerEvents: 'none',
-                  }}
-                />
-              ) : (
-                <Phone
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    top: '14px',
-                    left: '14px',
-                    color: 'var(--text-muted)',
-                    pointerEvents: 'none',
-                  }}
-                />
-              )}
+              <Mail
+                size={16}
+                style={{
+                  position: 'absolute',
+                  top: '14px',
+                  left: '14px',
+                  color: 'var(--text-muted)',
+                  pointerEvents: 'none',
+                }}
+              />
               <input
-                type="text"
-                placeholder={index === 0 ? 'Email or phone number' : `Friend ${index + 1} — email or phone`}
+                type="email"
+                placeholder={index === 0 ? 'Email address' : `Friend ${index + 1} — email address`}
                 value={contact}
                 onChange={(e) => handleContactChange(index, e.target.value)}
                 autoComplete="off"

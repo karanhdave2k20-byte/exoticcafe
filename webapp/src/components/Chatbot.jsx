@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot } from 'lucide-react';
 import { useStore } from '../StoreContext';
 
@@ -6,7 +6,7 @@ export default function Chatbot() {
   const { showToast } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! Welcome to Exotic Café. ☕ How can I assist you today?", sender: 'bot' }
+    { id: 1, text: "Hello! Welcome to TableHive. ☕ How can I assist you today?", sender: 'bot' }
   ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);

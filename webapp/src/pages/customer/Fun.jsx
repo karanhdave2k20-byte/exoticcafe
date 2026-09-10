@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Gamepad2, Film, Music, Newspaper, Coffee, Zap, ArrowRight } from 'lucide-react';
+import { Gamepad2, Film, Music, Newspaper, Coffee, Zap, ArrowRight, Bot } from 'lucide-react';
 import { useStore } from '../../StoreContext';
 
 export default function Fun() {
@@ -103,6 +103,17 @@ export default function Fun() {
           </div>
         </div>
         )}
+      </div>
+
+      {/* Live AI Talk Option */}
+      <div className="glass-panel" onClick={() => navigate('/fun/ai-talk')} style={{ padding: '2rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', cursor: 'pointer', marginBottom: '2rem', transition: 'transform 0.2s ease-in-out' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+           <div style={{ background: 'rgba(76, 175, 80, 0.1)', border: '1px solid #4caf50', padding: '0.8rem', borderRadius: '50%' }}>
+             <Bot size={24} color="#4caf50" />
+           </div>
+           <p style={{ fontWeight: '700', fontSize: '1.2rem', color: '#4caf50' }}>Live AI Companion</p>
+        </div>
+        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>Real-time voice conversation with our AI.</p>
       </div>
 
       <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>

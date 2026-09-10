@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Coffee, QrCode, X, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../../StoreContext';
@@ -148,7 +148,7 @@ export default function Scanner() {
         <div style={{ display: 'inline-flex', background: 'rgba(212, 163, 115, 0.1)', padding: '1.2rem', borderRadius: '50%', marginBottom: '1.2rem' }}>
           <Coffee size={40} color="var(--primary-color)" />
         </div>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', margin: 0, color: 'var(--primary-color)' }}>Exotic Café</h1>
+        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', margin: 0, color: 'var(--primary-color)' }}>TableHive</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.4rem' }}>
           Choose your table or scan the QR code to begin ordering
         </p>

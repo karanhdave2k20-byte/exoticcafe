@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+﻿require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -183,7 +183,7 @@ app.post('/api/database/orders/:id/status', async (req, res) => {
     const order = await db.collection('orders').findOne({ o: id });
 
     if (order && order.contact) {
-      sendWhatsAppNotification(order.contact, `Hello! Your Order #${id} is now ${status}. Enjoy your time at Exotic Café!`);
+      sendWhatsAppNotification(order.contact, `Hello! Your Order #${id} is now ${status}. Enjoy your time at TableHive!`);
     }
 
     res.status(200).json({ success: true, order });
@@ -437,10 +437,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
     if (isEmail && process.env.GMAIL_USER && process.env.GMAIL_PASS) {
       try {
         await transporter.sendMail({
-          from: `"Exotic Cafe" <${process.env.GMAIL_USER}>`,
+          from: `"TableHive" <${process.env.GMAIL_USER}>`,
           to: contact,
           subject: "Your Cafe Auth OTP Code",
-          text: `Your requested EXOTIC CAFE OTP is: ${otp}. It expires in 5 minutes. Do not share this with anyone.`,
+          text: `Your requested TableHive OTP is: ${otp}. It expires in 5 minutes. Do not share this with anyone.`,
         });
         console.log(`[AUTH] Secure OTP delivered to ${contact}`);
         return res.status(200).json({ message: "OTP sent to your email successfully!" });
@@ -576,14 +576,14 @@ app.post('/api/auth/invite', async (req, res) => {
     if (emailInvites.length > 0 && process.env.GMAIL_USER && process.env.GMAIL_PASS) {
       const emailPromises = emailInvites.map(email => {
         return transporter.sendMail({
-          from: `"Exotic Cafe" <${process.env.GMAIL_USER}>`,
+          from: `"TableHive" <${process.env.GMAIL_USER}>`,
           to: email,
-          subject: `Join Table ${tableNo} at Exotic Café! ☕`,
+          subject: `Join Table ${tableNo} at TableHive! ☕`,
           html: `
             <div style="font-family: sans-serif; background-color: #f7f3eb; padding: 2.5rem; border-radius: 16px; border: 1px solid #e2d9cf; max-width: 500px; margin: 0 auto; color: #1e3a2f;">
               <h2 style="color: #6f4e37; text-align: center; margin-bottom: 1.5rem;">You're Invited! 🍽️</h2>
               <p style="font-size: 1.1rem; line-height: 1.6; text-align: center;">
-                Your friend wants you to join their table session at <strong>Exotic Café</strong>.
+                Your friend wants you to join their table session at <strong>TableHive</strong>.
               </p>
               <div style="background-color: #ffffff; padding: 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; border: 1px solid #e2d9cf;">
                 <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #8c8c8c; text-transform: uppercase; letter-spacing: 1px;">Session Table</p>
@@ -614,6 +614,46 @@ app.post('/api/auth/invite', async (req, res) => {
   }
 });
 
+// 🤖 AI CHAT PROXY ENDPOINT (Gemini - Official SDK)
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Messages array is required.' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey.trim() === '') {
+      return res.status(503).json({ error: 'AI not configured. Please add GEMINI_API_KEY to server/.env file. Get a free key at https://aistudio.google.com/app/apikey' });
+    }
+
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(apiKey.trim());
+
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-3.6-flash',
+      systemInstruction: 'You are a friendly and helpful AI assistant for TableHive. Help customers with menu recommendations, keep them entertained while they wait, answer general questions. Be warm, concise, and fun. Use emojis occasionally to keep it lively.',
+    });
+
+    // Build chat history (all messages except the last user message)
+    const history = messages.slice(0, -1).map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.text }],
+    }));
+
+    const chat = model.startChat({ history });
+    const lastMessage = messages[messages.length - 1];
+    const result = await chat.sendMessage(lastMessage.text);
+    const reply = result.response.text();
+
+    return res.status(200).json({ reply });
+  } catch (error) {
+    console.error('[AI CHAT] Error:', error.message);
+    const msg = error.message || 'AI Chat service failed.';
+    res.status(500).json({ error: msg });
+  }
+});
+
 // 🚀 CATCH-ALL FOR REACT ROUTING (SPA)
 app.get(/^.*$/, (req, res) => {
   const fs = require('fs');
@@ -621,7 +661,7 @@ app.get(/^.*$/, (req, res) => {
   if (fs.existsSync(indexHtmlPath)) {
     res.sendFile(indexHtmlPath);
   } else {
-    res.status(200).json({ status: "ok", message: "Exotic Cafe Backend API is active" });
+    res.status(200).json({ status: "ok", message: "TableHive Backend API is active" });
   }
 });
 

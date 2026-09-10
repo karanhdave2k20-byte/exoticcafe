@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, User, Sun, Moon, Menu as MenuIcon, X } from 'lucide-react';
 import { useStore } from '../StoreContext';
@@ -20,8 +20,8 @@ const WebAppHeader = () => {
         
         {/* Brand logo (goes to menu on webapp) */}
         <Link to="/menu" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '1.3rem', fontFamily: 'var(--font-serif)', color: 'var(--primary-color)' }}>
-          <img src="/logo.png" alt="Exotic Cafe" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
-          <span>Exotic Café</span>
+          <img src="/logo.png" alt="TableHive" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
+          <span>TableHive</span>
         </Link>
 
         {/* Web App Specific Center Status Badge */}

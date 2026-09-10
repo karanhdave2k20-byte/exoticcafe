@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShieldAlert, UserPlus, Mail, Lock, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useStore } from '../../StoreContext';
@@ -49,7 +49,7 @@ export default function AdminSignup() {
             <UserPlus size={40} color="#1a1a1a" />
           </div>
           <h1 style={{ fontSize: '2rem', margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Staff Registration</h1>
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Request administrative access for Exotic Café</p>
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Request administrative access for TableHive</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>

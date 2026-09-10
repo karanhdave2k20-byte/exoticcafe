@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useStore } from '../../StoreContext';
@@ -54,7 +54,7 @@ export default function AdminLogin() {
             <ShieldCheck size={40} color="#1a1a1a" />
           </div>
           <h1 style={{ fontSize: '2rem', margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>Staff Login</h1>
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Secure access to Exotic Café Admin Panel</p>
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Secure access to TableHive Admin Panel</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

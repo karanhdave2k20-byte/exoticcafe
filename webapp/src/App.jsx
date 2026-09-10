@@ -26,6 +26,8 @@ import AdminSignup from './pages/admin/AdminSignup';
 import Scanner from './pages/customer/Scanner';
 import PeopleCount from './pages/customer/PeopleCount';
 import InviteFriends from './pages/customer/InviteFriends';
+import LiveAITalk from './pages/customer/LiveAITalk';
+import FloatingAITalkButton from './components/FloatingAITalkButton';
 
 function ProtectedRoute({ children }) {
   const { user, tableInfo } = useStore();
@@ -52,6 +54,7 @@ function App() {
   return (
     <Router>
       <ThemeToggle />
+      <FloatingAITalkButton />
       <Routes>
         {/* Onboarding sequence starts directly on the QR scanner */}
         <Route path="/" element={<Scanner />} />
@@ -73,6 +76,7 @@ function App() {
         <Route path="/fun/radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
         <Route path="/fun/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
         <Route path="/fun/live" element={<ProtectedRoute><LiveScore /></ProtectedRoute>} />
+        <Route path="/fun/ai-talk" element={<ProtectedRoute><LiveAITalk /></ProtectedRoute>} />
         <Route path="/track" element={<ProtectedRoute><TrackOrder /></ProtectedRoute>} />
         <Route path="/pay" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
         <Route path="/suggest" element={<ProtectedRoute><Suggestion /></ProtectedRoute>} />

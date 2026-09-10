@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -43,7 +43,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             Text(
-              'Exotic Café Member',
+              'TableHive Member',
               style: GoogleFonts.lato(color: Colors.white38, fontSize: 13),
             ),
             const SizedBox(height: 30),
@@ -63,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
             _menuTile(Icons.location_on_outlined, 'Address', 'Manage addresses'),
             _menuTile(Icons.notifications_outlined, 'Notifications', 'App notifications'),
             _menuTile(Icons.help_outline, 'Help & Support', 'FAQ and contact'),
-            _menuTile(Icons.info_outline, 'About', 'About Exotic Café'),
+            _menuTile(Icons.info_outline, 'About', 'About TableHive'),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),

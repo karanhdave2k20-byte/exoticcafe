@@ -1,6 +1,6 @@
-{
-    "name": "exotic_cafe_app",
-    "short_name": "exotic_cafe_app",
+﻿{
+    "name": "tablehive_app",
+    "short_name": "tablehive_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

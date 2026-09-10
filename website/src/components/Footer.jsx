@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Send, Instagram, Facebook, Twitter, MessageCircle } from 'lucide-react';
 import { useStore } from '../StoreContext';
@@ -34,7 +34,7 @@ export default function Footer() {
         
         {/* Brand Section */}
         <div>
-          <h3 style={{ color: 'var(--primary-color)', fontFamily: 'var(--font-serif)', fontSize: '1.4rem', marginBottom: '1rem' }}>Exotic Café</h3>
+          <h3 style={{ color: 'var(--primary-color)', fontFamily: 'var(--font-serif)', fontSize: '1.4rem', marginBottom: '1rem' }}>TableHive</h3>
           <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '1.2rem' }}>
             Experience the divine taste of our premium artisanal coffee and gourmet snacks, crafted fresh daily.
           </p>
@@ -106,7 +106,7 @@ export default function Footer() {
         color: 'var(--text-muted)',
         fontSize: '0.8rem'
       }}>
-        <p>&copy; {new Date().getFullYear()} Exotic Café. All Rights Reserved. Built with ❤️ for coffee lovers.</p>
+        <p>&copy; {new Date().getFullYear()} TableHive. All Rights Reserved. Built with ❤️ for coffee lovers.</p>
       </div>
     </footer>
   );

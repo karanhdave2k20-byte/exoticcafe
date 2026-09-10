@@ -1,9 +1,9 @@
-// Widget tests for Exotic Café Flutter app.
+﻿// Widget tests for TableHive Flutter app.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exotic_cafe_app/main.dart';
+import 'package:tablehive_app/main.dart';
 
 void main() {
   testWidgets('App launches and shows SplashScreen', (WidgetTester tester) async {

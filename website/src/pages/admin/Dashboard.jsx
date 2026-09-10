@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   Users, Coffee, ClipboardList, Star, Settings, Layout, 
   Trash2, Plus, LogOut, CheckCircle, Clock, AlertCircle, 
@@ -479,7 +479,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                <div>
                  <label style={{ display:'block', marginBottom:'0.5rem', color:'var(--text-muted)' }}>Cafe Name</label>
-                 <input type="text" defaultValue="Exotic Café & Bistro" />
+                 <input type="text" defaultValue="TableHive & Bistro" />
                </div>
                <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Save Changes</button>
                <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255, 60, 60, 0.2)', paddingTop: '1.5rem' }}>

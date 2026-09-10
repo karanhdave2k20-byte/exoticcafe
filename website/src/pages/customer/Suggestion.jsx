@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Star } from 'lucide-react';
 
@@ -26,7 +26,7 @@ export default function Suggestion() {
   return (
     <div className="mobile-wrapper" style={{ padding: '2rem', display: 'flex', flexDirection: 'column' }}>
       <h2 style={{ fontSize: '2rem', color: 'var(--primary-color)', marginBottom: '0.5rem' }}>Meal Completed!</h2>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>We hope you enjoyed the experience at Exotic Cafe.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>We hope you enjoyed the experience at TableHive.</p>
       
       <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2.5rem', border: '1px dashed var(--primary-color)', textAlign: 'center' }}>
          <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loyalty Points Earned</h4>
