@@ -380,7 +380,7 @@ select:-webkit-autofill:focus {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  color: var(--primary-color);
+  color: #D4A373;
   font-size: 0.8rem;
   letter-spacing: 2px;
   text-transform: uppercase;

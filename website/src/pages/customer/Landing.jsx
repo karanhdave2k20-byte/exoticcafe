@@ -91,7 +91,7 @@ export default function Landing() {
           {/* Hero Content */}
           <div style={{ zIndex: 1, maxWidth: '800px' }} className="animate-fade-in">
             {/* Offer Banner */}
-            <div style={{ display: 'inline-flex', background: 'rgba(212, 163, 115, 0.2)', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '1.5rem', letterSpacing: '1px' }}>
+            <div style={{ display: 'inline-flex', background: 'rgba(212, 163, 115, 0.2)', border: '1px solid #D4A373', color: '#D4A373', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '1.5rem', letterSpacing: '1px' }}>
               ⚡ SPECIAL OFFER: USE CODE "EXOTIC20" FOR 20% OFF!
             </div>
 
@@ -104,14 +104,14 @@ export default function Landing() {
 
             {/* 1. Strong Headline */}
             <h1 style={{ fontSize: '3.3rem', color: 'var(--primary-color)', fontFamily: 'var(--font-serif)', marginBottom: '1.2rem', lineHeight: '1.2' }}>
-              Freshly Brewed Coffee, <span style={{ display: 'block', fontSize: '2.4rem', color: 'var(--text-main)' }}>Every Cup Tells a Story. ☕</span>
+              Freshly Brewed Coffee, <span style={{ display: 'block', fontSize: '2.4rem', color: 'var(--bg-color)' }}>Every Cup Tells a Story. ☕</span>
             </h1>
-            <p style={{ color: 'var(--text-main)', fontSize: '1.2rem', opacity: 0.9, marginBottom: '2.5rem', fontFamily: 'var(--font-sans)', fontWeight: 300 }}>
+            <p style={{ color: 'var(--bg-color)', fontSize: '1.2rem', opacity: 0.9, marginBottom: '2.5rem', fontFamily: 'var(--font-sans)', fontWeight: 300 }}>
               Experience divine taste and premium artisanal blends crafted with pure organic beans.
             </p>
 
             {/* Quick info row */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '2rem', color: 'var(--text-main)', fontSize: '0.9rem', marginBottom: '2.5rem', opacity: 0.8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '2rem', color: 'var(--bg-color)', fontSize: '0.9rem', marginBottom: '2.5rem', opacity: 0.8 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <Star size={16} fill="var(--primary-color)" color="var(--primary-color)" /> 4.9 Rating (1,200+ Reviews)
               </span>
@@ -161,7 +161,7 @@ export default function Landing() {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div style={{ padding: '16px', background: 'white', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)', textAlign: 'center' }}>
               <img 
-                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://exotic-cafe.com" 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(window.location.origin)}`} 
                 alt="Demo Table QR" 
                 style={{ width: '180px', height: '180px', display: 'block', margin: '0 auto' }} 
               />
