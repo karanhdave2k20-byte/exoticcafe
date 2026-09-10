@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight, Tag, Info } from 'lucide-react';
 import { useStore } from '../../StoreContext';
-import Navbar from '../../components/Navbar';
+import WebAppHeader from '../../components/WebAppHeader';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export default function Cart() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-color)', paddingBottom: '4rem' }}>
-      <Navbar />
+      <WebAppHeader />
 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
         <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-serif)', marginBottom: '2rem', textAlign: 'center', color: 'var(--primary-color)' }}>

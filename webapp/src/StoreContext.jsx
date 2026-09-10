@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import Toast from './components/Toast';
 
 const StoreContext = createContext();
 
@@ -144,22 +145,7 @@ export const StoreProvider = ({ children }) => {
     localStorage.setItem('aura-recent-total', recentOrderTotal.toString());
   }, [recentOrderTotal]);
 
-  // Handle automatic order status updates from syncing
-  useEffect(() => {
-    if (currentOrderId && adminOrders && adminOrders.length > 0) {
-      const myOrder = adminOrders.find(o => o.o === currentOrderId);
-      if (myOrder) {
-        // Map backend status to frontend stages
-        const statusMap = {
-          'Preparing': 'preparing',
-          'Ready': 'ready',
-          'Delivered': 'delivered',
-          'Completed': 'delivered'
-        };
-        setOrderStatus(statusMap[myOrder.s] || 'received');
-      }
-    }
-  }, [adminOrders, currentOrderId]);
+  // Handle automatic order status updates from syncing (single unified effect)
 
   // Apply theme to document
   useEffect(() => {
@@ -287,13 +273,10 @@ export const StoreProvider = ({ children }) => {
   };
 
   const updateQuantity = (id, delta) => {
-    setCart(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQ = item.quantity + delta;
-        return newQ > 0 ? { ...item, quantity: newQ } : item;
-      }
-      return item;
-    }));
+    setCart(prev => prev
+      .map(item => item.id === id ? { ...item, quantity: item.quantity + delta } : item)
+      .filter(item => item.quantity > 0) // Remove item if quantity reaches 0
+    );
   };
 
   const removeFromCart = (id) => {
@@ -424,5 +407,4 @@ addToCart, updateQuantity, removeFromCart, cartTotal, placeOrder,
   );
 };
 
-import Toast from './components/Toast';
 

@@ -4,7 +4,6 @@ import {
   Search, Trash2, Bell, Star, Mic, Play, Tag, Zap, Camera, Languages, Heart, ArrowUpDown, Filter, Clock, MapPin, LogOut 
 } from 'lucide-react';
 import { useStore } from '../../StoreContext';
-import WebsiteNavbar from '../../components/WebsiteNavbar';
 import WebAppHeader from '../../components/WebAppHeader';
 import Modal from '../../components/Modal';
 import { translations } from '../../translations';
@@ -158,8 +157,8 @@ export default function Menu() {
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '6rem', background: 'var(--bg-color)' }}>
-      {/* 2. Navbar */}
-      {window.location.port === '5174' ? <WebAppHeader /> : <WebsiteNavbar />}
+      {/* 2. Navbar - always use WebAppHeader in the webapp */}
+      <WebAppHeader />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
         
@@ -520,21 +519,20 @@ export default function Menu() {
         </div>
       </Modal>
 
-      {window.location.port === '5174' && (
-        <button 
-          onClick={() => handleAction(() => { callWaiter(); showToast('Calling waiter...', 'success'); })}
-          style={{
-            position: 'fixed', bottom: '2rem', right: '5.5rem', 
-            width: '60px', height: '60px', borderRadius: '50%',
-            background: 'var(--primary-color)', color: '#1a1a1a',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(212, 163, 115, 0.4)',
-            border: 'none', zIndex: 100, cursor: 'pointer'
-          }}
-        >
-          <Bell size={28} />
-        </button>
-      )}
+      {/* Waiter bell - always visible in webapp */}
+      <button 
+        onClick={() => handleAction(() => { callWaiter(); showToast('Calling waiter...', 'success'); })}
+        style={{
+          position: 'fixed', bottom: '2rem', right: '5.5rem', 
+          width: '60px', height: '60px', borderRadius: '50%',
+          background: 'var(--primary-color)', color: '#1a1a1a',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(212, 163, 115, 0.4)',
+          border: 'none', zIndex: 100, cursor: 'pointer'
+        }}
+      >
+        <Bell size={28} />
+      </button>
     </div>
   );
 }
