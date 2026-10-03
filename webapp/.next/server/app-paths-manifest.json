@@ -1,0 +1,7 @@
+{
+  "/preference/page": "app/preference/page.js",
+  "/menu/page": "app/menu/page.js",
+  "/fun/ai-talk/page": "app/fun/ai-talk/page.js",
+  "/fun/page": "app/fun/page.js",
+  "/fun/news/page": "app/fun/news/page.js"
+}

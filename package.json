@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd webapp && npm install && npm run build && cp -R dist ../dist"
+    "dev": "cd webapp && npm run dev",
+    "build": "cd webapp && npm run build",
+    "start": "cd webapp && npm run start",
+    "server": "cd server && node server.js"
   }
 }
