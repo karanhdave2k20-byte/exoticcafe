@@ -12,7 +12,7 @@ import Modal from '../components/Modal';
 
 export default function HomePage() {
   const router = useRouter();
-  const { setTableInfo, adminTables } = useStore();
+  const { setTableInfo, adminTables, serverIp } = useStore();
 
   const [mode, setMode] = useState<'view' | 'scan'>('view');
   const [isScanning, setIsScanning] = useState(true);
@@ -263,9 +263,10 @@ export default function HomePage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {displayTables.map(t => {
           const tableNumStr = String(t.id).padStart(2, '0');
-          const tableTargetUrl = `${baseUrl || 'http://localhost:5174'}/table/${t.id}`;
-          // Generate high quality QR code URL with margin
-          const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=8&data=${encodeURIComponent(tableTargetUrl)}`;
+          // Use serverIp (network IP) so mobile phones can resolve it instead of localhost
+          const tableTargetUrl = `http://${serverIp === 'localhost' ? window.location.hostname : serverIp}:5174/table/${t.id}`;
+          // Generate high quality QR code URL with margin and High error correction (ecc=H)
+          const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&ecc=H&data=${encodeURIComponent(tableTargetUrl)}`;
 
           return (
             <div
@@ -319,13 +320,6 @@ export default function HomePage() {
                   className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-md"
                   loading="lazy"
                 />
-
-                {/* Center Emblem */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-7 h-7 rounded-lg bg-white border border-caramel-300 shadow-md flex items-center justify-center">
-                    <Coffee className="w-3 h-3 text-caramel-600" />
-                  </div>
-                </div>
               </div>
 
               {/* Action Area */}

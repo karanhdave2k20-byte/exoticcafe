@@ -12,26 +12,47 @@ interface Track {
   cover: string;
 }
 
-const tracks: Track[] = [
-  { title: 'Midnight Espresso Roast', artist: 'Artisan Beats', genre: 'Lo-Fi Jazz', duration: '3:45', cover: '☕' },
-  { title: 'Raindrops on Café Awning', artist: 'The French Press', genre: 'Ambient Chill', duration: '4:12', cover: '🌧️' },
-  { title: 'Warm Cinnamon Steam', artist: 'Acoustic Morning', genre: 'Warm Acoustic', duration: '2:58', cover: '🥐' },
-  { title: 'Velvet Latte Art Chords', artist: 'Kyoto Lounge', genre: 'Downtempo', duration: '3:30', cover: '🌿' },
-];
-
 export default function RadioPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(80);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const tracks = [
+    { title: 'Chill Lounge & Lo-Fi', artist: 'I Love Radio', genre: 'Lo-Fi Jazz', duration: 'LIVE', cover: '☕', url: 'https://streams.ilovemusic.de/iloveradio17.mp3' },
+    { title: 'Ambient Rain & Chill', artist: 'SomaFM', genre: 'Ambient Chill', duration: 'LIVE', cover: '🌧️', url: 'https://ice1.somafm.com/defcon-128-mp3' },
+    { title: 'Deep Space Lounge', artist: 'SomaFM Space Station', genre: 'Ambient Downtempo', duration: 'LIVE', cover: '✨', url: 'https://ice1.somafm.com/spacestation-128-mp3' },
+    { title: 'Acoustic Morning Blend', artist: 'Chillout Lounge', genre: 'Acoustic', duration: 'LIVE', cover: '🥐', url: 'https://streams.ilovemusic.de/iloveradio14.mp3' },
+  ];
 
   const currentTrack = tracks[currentTrackIndex];
 
+  // Effect to handle play/pause and volume changes
+  React.useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+      if (isPlaying) {
+        audioRef.current.play().catch(e => {
+          console.error('Audio play failed:', e);
+          setIsPlaying(false);
+        });
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isPlaying, currentTrackIndex, volume]);
+
   const handleNextTrack = () => {
+    setIsPlaying(false);
     setCurrentTrackIndex((prev) => (prev + 1) % tracks.length);
+    setTimeout(() => setIsPlaying(true), 100); // Resume play after changing source
   };
 
   return (
     <div className="max-w-md mx-auto py-4 flex flex-col gap-6 animate-fade-in">
+      {/* Hidden Audio Element for Streaming */}
+      <audio ref={audioRef} src={currentTrack.url} preload="none" />
+
       {/* Top Bar */}
       <div className="flex items-center justify-between">
         <Link href="/fun" className="p-2 rounded-full glass-card text-muted hover:text-caramel-700 bg-white border border-warm-border">

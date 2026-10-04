@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   Search, Mic, Star, Flame, Clock, Heart, Plus, Minus, 
   SlidersHorizontal, Sparkles, Filter, ChevronDown, Coffee, 
@@ -667,6 +668,32 @@ export default function MenuPage() {
           </div>
         )}
       </Modal>
+
+      {/* Floating Quick Cart for Menu Page */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-6 left-0 right-0 px-4 z-40 flex justify-center animate-slide-up pointer-events-none">
+          <div className="glass-card bg-roast-900 text-white rounded-full px-5 py-3 shadow-glass flex items-center justify-between gap-6 w-full max-w-sm pointer-events-auto border border-roast-800/50">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-caramel-500/20 text-caramel-400 flex items-center justify-center font-bold">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total</span>
+                <span className="text-sm font-black font-mono">
+                  ₹{cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+            
+            <Link 
+              href="/cart"
+              className="btn-primary py-2 px-4 text-xs shadow-gold bg-caramel-600 hover:bg-caramel-500 text-white border-none"
+            >
+              View Order
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

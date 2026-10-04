@@ -13,47 +13,65 @@ interface NewsItem {
   source: string;
 }
 
-const newsData: NewsItem[] = [
-  {
-    id: '1',
-    category: 'Coffee & Gastronomy',
-    title: 'Geisha Beans from Panama Break Global Auction Records at $10,000/kg',
-    summary: 'Specialty coffee roasters around the world celebrate the delicate floral jasmine and bergamot notes of high-altitude volcanic harvests.',
-    time: '18m ago',
-    source: 'World Coffee Gazette',
-  },
-  {
-    id: '2',
-    category: 'Technology & AI',
-    title: 'Autonomous Precision Brewing: Next-Gen Espresso Machines Master Micro-Fluidics',
-    summary: 'New temperature-zoned extraction pumps dynamically adjust bar pressure mid-shot to maximize crema yield and minimize bitter chlorogenic acids.',
-    time: '45m ago',
-    source: 'TechPulse Café',
-  },
-  {
-    id: '3',
-    category: 'Culture & Lifestyle',
-    title: 'The Resurgence of Café Society: Collaborative Dining Takes Over Urban Centers',
-    summary: 'From Tokyo to Milan, guests are ditching isolated mobile screens for shared QR carts, collaborative playlist queues, and interactive dining.',
-    time: '2h ago',
-    source: 'Urban Living Daily',
-  },
-  {
-    id: '4',
-    category: 'Sustainability',
-    title: 'Zero-Waste Coffee Roasteries Turn Used Grounds into Eco-Concrete and Plant Fertilizer',
-    summary: 'Groundbreaking circular economy initiatives eliminate thousands of tons of organic waste while providing nitrogen-rich soil to community gardens.',
-    time: '3h ago',
-    source: 'Green Earth Review',
-  },
-];
-
 export default function NewsPage() {
-  const [filter, setFilter] = useState('All');
+  const [language, setLanguage] = useState('English');
+  const [newsData, setNewsData] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const categories = ['All', 'Coffee & Gastronomy', 'Technology & AI', 'Culture & Lifestyle', 'Sustainability'];
+  const languages = [
+    { label: 'English', code: 'en-IN', ceid: 'IN:en', lang: 'en' },
+    { label: 'Hindi', code: 'hi', ceid: 'IN:hi', lang: 'hi' },
+    { label: 'Gujarati', code: 'gu', ceid: 'IN:gu', lang: 'gu' }
+  ];
 
-  const filteredNews = newsData.filter(item => filter === 'All' || item.category === filter);
+  React.useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+
+    const fetchNews = async () => {
+      try {
+        const langInfo = languages.find(l => l.label === language) || languages[0];
+        const rssUrl = `https://news.google.com/rss?hl=${langInfo.code}&gl=IN&ceid=${langInfo.ceid}`;
+        // Using rss2json to easily parse RSS feed on the client
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+        
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        
+        if (isMounted && data.items) {
+          const formattedNews = data.items.map((item: any) => {
+            // Calculate time ago
+            const pubDate = new Date(item.pubDate);
+            const now = new Date();
+            const diffMs = now.getTime() - pubDate.getTime();
+            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            let timeStr = `${diffMins}m ago`;
+            if (diffHrs > 0) timeStr = `${diffHrs}h ago`;
+            
+            return {
+              id: item.guid || item.link,
+              category: 'Top Stories',
+              title: item.title,
+              summary: item.content ? item.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...' : '',
+              time: timeStr,
+              source: item.source || 'Google News',
+              link: item.link
+            };
+          }).slice(0, 10); // Show top 10
+
+          setNewsData(formattedNews);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch news:", err);
+        setIsLoading(false);
+      }
+    };
+
+    fetchNews();
+    return () => { isMounted = false; };
+  }, [language]);
 
   return (
     <div className="max-w-3xl mx-auto py-4 flex flex-col gap-6 animate-fade-in">
@@ -63,63 +81,70 @@ export default function NewsPage() {
         </Link>
         <div className="text-center">
           <span className="text-[10px] uppercase font-bold tracking-widest text-caramel-700">
-            Curated Press
+            Real-Time Updates
           </span>
           <h1 className="text-2xl font-serif font-black text-roast-900">
-            Café & World Digest
+            Global News Feed
           </h1>
         </div>
         <div className="w-9" />
       </div>
 
-      {/* Category Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {categories.map(cat => (
+      {/* Language Pills */}
+      <div className="flex items-center justify-center gap-3 overflow-x-auto pb-1 scrollbar-none">
+        {languages.map(lang => (
           <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
-              filter === cat
-                ? 'bg-caramel-500 text-white border-caramel-600 shadow-sm'
+            key={lang.label}
+            onClick={() => setLanguage(lang.label)}
+            className={`px-6 py-2.5 rounded-full text-xs font-black whitespace-nowrap transition-all border shadow-sm ${
+              language === lang.label
+                ? 'bg-caramel-600 text-white border-caramel-600 shadow-gold'
                 : 'glass-card border-warm-border bg-white text-roast-800 hover:border-caramel-400'
             }`}
           >
-            {cat}
+            {lang.label}
           </button>
         ))}
       </div>
 
       {/* Articles Stream */}
       <div className="flex flex-col gap-4">
-        {filteredNews.map(news => (
-          <div
-            key={news.id}
-            className="glass-card p-5 rounded-3xl border border-warm-border bg-white hover:border-caramel-500 transition-all shadow-sm flex flex-col gap-2"
-          >
-            <div className="flex items-center justify-between text-[11px] text-muted">
-              <span className="px-2.5 py-0.5 rounded-full bg-caramel-500/10 text-caramel-700 font-bold border border-caramel-500/20">
-                {news.category}
-              </span>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-caramel-600" />
-                <span>{news.time}</span>
-              </div>
-            </div>
-
-            <h3 className="font-serif font-bold text-lg text-roast-900 hover:text-caramel-700 transition-colors cursor-pointer mt-1">
-              {news.title}
-            </h3>
-
-            <p className="text-xs text-muted leading-relaxed">
-              {news.summary}
-            </p>
-
-            <div className="flex items-center justify-between text-[11px] text-muted pt-3 border-t border-warm-border mt-1">
-              <span className="font-semibold text-caramel-700">Source: {news.source}</span>
-              <span className="text-[10px] text-muted">Read in 2 mins</span>
-            </div>
+        {isLoading ? (
+          <div className="flex justify-center p-12">
+            <div className="w-8 h-8 rounded-full border-4 border-caramel-200 border-t-caramel-600 animate-spin"></div>
           </div>
-        ))}
+        ) : (
+          newsData.map(news => (
+            <a
+              key={news.id}
+              href={news.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card p-5 rounded-3xl border border-warm-border bg-white hover:border-caramel-500 transition-all shadow-sm flex flex-col gap-2 group block"
+            >
+              <div className="flex items-center justify-between text-[11px] text-muted">
+                <span className="px-2.5 py-0.5 rounded-full bg-caramel-500/10 text-caramel-700 font-bold border border-caramel-500/20 uppercase tracking-widest">
+                  {language} News
+                </span>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-caramel-600" />
+                  <span>{news.time}</span>
+                </div>
+              </div>
+
+              <h3 className="font-serif font-bold text-lg text-roast-900 group-hover:text-caramel-700 transition-colors mt-1">
+                {news.title}
+              </h3>
+
+              <div className="flex items-center justify-between text-[11px] text-muted pt-3 border-t border-warm-border mt-1">
+                <span className="font-semibold text-caramel-700">Source: {news.source}</span>
+                <span className="flex items-center gap-1 text-[10px] text-muted group-hover:text-caramel-600">
+                  Read full story <ExternalLink className="w-3 h-3" />
+                </span>
+              </div>
+            </a>
+          ))
+        )}
       </div>
     </div>
   );
