@@ -72,7 +72,7 @@ export default function FunHubPage() {
     {
       id: 'AI Barista',
       title: 'Gemini AI Culinary Companion',
-      desc: 'Chat with our AI Sommelier powered by Gemini. Ask pairing advice, dish secrets, or jokes!',
+      desc: 'Chat with our AI Mitra powered by Gemini. Ask pairing advice, dish secrets, or jokes!',
       icon: Bot,
       color: 'from-yellow-500 to-amber-600',
       badge: 'Gemini AI',

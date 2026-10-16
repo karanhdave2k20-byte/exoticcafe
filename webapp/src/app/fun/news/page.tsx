@@ -11,6 +11,7 @@ interface NewsItem {
   summary: string;
   time: string;
   source: string;
+  link: string;
 }
 
 export default function NewsPage() {

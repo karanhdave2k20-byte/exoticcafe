@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { 
   Search, Mic, Star, Flame, Clock, Heart, Plus, Minus, 
   SlidersHorizontal, Sparkles, Filter, ChevronDown, Coffee, 
-  Sparkle, Check, MessageSquare, User, Zap 
+  Sparkle, Check, MessageSquare, User, Zap, Bot, Music, Headphones, ArrowRight,
+  Trophy, Film, Gamepad2, Newspaper, Video
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { MenuItem, ItemCustomization } from '../../types';
@@ -16,8 +17,28 @@ import BackButton from '../../components/BackButton';
 export default function MenuPage() {
   const { 
     mockMenu, cart, addToCart, updateQuantity, 
-    isPureVeg, favorites, toggleFavorite, showToast, tableInfo 
+    isPureVeg, favorites, toggleFavorite, showToast, tableInfo,
+    currentSession, setIsLeftAiChatOpen
   } = useStore();
+
+  const activeInterests = (tableInfo?.interests && tableInfo.interests.length > 0)
+    ? tableInfo.interests
+    : (currentSession?.interests && currentSession.interests.length > 0)
+    ? currentSession.interests
+    : [];
+
+  const primaryInterest = activeInterests[0] || '';
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const topicToOpen = sessionStorage.getItem('th_auto_open_mitra_topic') || sessionStorage.getItem('th_auto_open_music_mitra');
+      if (topicToOpen) {
+        sessionStorage.removeItem('th_auto_open_mitra_topic');
+        sessionStorage.removeItem('th_auto_open_music_mitra');
+        setIsLeftAiChatOpen(true);
+      }
+    }
+  }, [setIsLeftAiChatOpen]);
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -273,22 +294,74 @@ export default function MenuPage() {
         </div>
       )}
 
+      {/* 🏏 🎵 📰 Dynamic Entertainment & News Banner (Auto-shown when table selected an interest) */}
+      {primaryInterest && (
+        <div className="p-4 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 text-white border border-indigo-500/30 shadow-md flex flex-wrap items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-amber-300 shadow-inner flex-shrink-0">
+              {primaryInterest === 'Cricket' ? <Trophy className="w-5 h-5 animate-pulse text-amber-400" /> :
+               primaryInterest === 'Music' ? <Music className="w-5 h-5 animate-pulse text-purple-300" /> :
+               primaryInterest === 'Movies' ? <Film className="w-5 h-5 text-indigo-300" /> :
+               primaryInterest === 'Games' ? <Gamepad2 className="w-5 h-5 text-emerald-300" /> :
+               primaryInterest === 'Short Videos' ? <Video className="w-5 h-5 text-rose-300" /> :
+               <Newspaper className="w-5 h-5 text-blue-300" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-bold text-sm text-white tracking-wide">
+                  Table {primaryInterest} Hub Active
+                </h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  {primaryInterest === 'Cricket' ? 'Live Scores & Cricket News' :
+                   primaryInterest === 'Music' ? 'Live Lo-Fi & Music News' :
+                   'Live Updates & AI News'}
+                </span>
+              </div>
+              <p className="text-xs text-indigo-200/80 mt-0.5">
+                {primaryInterest === 'Cricket' 
+                  ? 'AI Mitra has loaded live match scorecards, stadium feeds & cricket news for your table!'
+                  : primaryInterest === 'Music'
+                  ? 'AI Mitra has tuned into café beats and curated trending music headlines for your table!'
+                  : `AI Mitra has curated trending ${primaryInterest.toLowerCase()} updates and news for your table!`}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsLeftAiChatOpen(true)}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 group flex-shrink-0"
+          >
+            <span>Open {primaryInterest} in AI Mitra</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        </div>
+      )}
+
       {/* NEW FEATURE: AI Mood Table Matchmaker */}
       <div className="glass-card p-5 rounded-3xl border border-caramel-500/30 bg-gradient-to-r from-[#FFFDF9] via-warm-subtle to-[#FFFDF9] shadow-sm flex flex-col gap-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl bg-caramel-500 text-white flex items-center justify-center">
+            <div className="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
               <h3 className="font-serif font-bold text-sm text-roast-900 leading-none">
-                AI Table Sommelier
+                AI Table Mitra
               </h3>
               <p className="text-[11px] text-muted mt-0.5">
                 Select your table mood for curated pairing recommendations
               </p>
             </div>
           </div>
+
+          <button
+            onClick={() => setIsLeftAiChatOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-xs"
+            title="Chat directly with AI Mitra"
+          >
+            <Bot className="w-3.5 h-3.5 text-amber-300" />
+            <span>Chat with AI Mitra</span>
+          </button>
         </div>
 
         {/* Mood Pill Buttons */}
@@ -668,32 +741,6 @@ export default function MenuPage() {
           </div>
         )}
       </Modal>
-
-      {/* Floating Quick Cart for Menu Page */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-6 left-0 right-0 px-4 z-40 flex justify-center animate-slide-up pointer-events-none">
-          <div className="glass-card bg-roast-900 text-white rounded-full px-5 py-3 shadow-glass flex items-center justify-between gap-6 w-full max-w-sm pointer-events-auto border border-roast-800/50">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-caramel-500/20 text-caramel-400 flex items-center justify-center font-bold">
-                {cart.reduce((sum, item) => sum + item.quantity, 0)}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total</span>
-                <span className="text-sm font-black font-mono">
-                  ₹{cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
-                </span>
-              </div>
-            </div>
-            
-            <Link 
-              href="/cart"
-              className="btn-primary py-2 px-4 text-xs shadow-gold bg-caramel-600 hover:bg-caramel-500 text-white border-none"
-            >
-              View Order
-            </Link>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

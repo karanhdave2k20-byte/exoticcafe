@@ -73,6 +73,36 @@ export default function HomePage() {
     }
   };
 
+  // Fallback tables if admin tables empty
+  const defaultTables = [
+    { id: 1, seats: 4, status: 'Free', zone: 'Terrace Garden Booth' },
+    { id: 2, seats: 2, status: 'Free', zone: 'Window Espresso Bar' },
+    { id: 3, seats: 6, status: 'Free', zone: 'Artisan Family Table' },
+    { id: 4, seats: 4, status: 'Free', zone: 'Courtyard Booth' },
+    { id: 5, seats: 4, status: 'Free', zone: 'Roastery View Table' },
+    { id: 6, seats: 2, status: 'Free', zone: 'Cozy Library Nook' },
+    { id: 7, seats: 8, status: 'Free', zone: 'VIP Lounge Suite' },
+    { id: 8, seats: 4, status: 'Free', zone: 'Garden Patio Table' },
+  ];
+
+  const sourceTables = adminTables.length > 0 ? adminTables : defaultTables;
+
+  const displayTables = useMemo(() => {
+    return sourceTables.map((t, idx) => {
+      const fallback = defaultTables[idx % defaultTables.length];
+      return {
+        ...fallback,
+        ...t,
+        zone: t.zone || fallback.zone,
+      };
+    }).filter(t => {
+      if (capacityFilter === '2') return t.seats <= 2;
+      if (capacityFilter === '4') return t.seats === 3 || t.seats === 4;
+      if (capacityFilter === 'large') return t.seats >= 5;
+      return true;
+    });
+  }, [sourceTables, capacityFilter]);
+
   // Modern Lite Theme Camera Scanner
   if (mode === 'scan') {
     return (
@@ -172,36 +202,6 @@ export default function HomePage() {
     );
   }
 
-  // Fallback tables if admin tables empty
-  const defaultTables = [
-    { id: 1, seats: 4, status: 'Free', zone: 'Terrace Garden Booth' },
-    { id: 2, seats: 2, status: 'Free', zone: 'Window Espresso Bar' },
-    { id: 3, seats: 6, status: 'Free', zone: 'Artisan Family Table' },
-    { id: 4, seats: 4, status: 'Free', zone: 'Courtyard Booth' },
-    { id: 5, seats: 4, status: 'Free', zone: 'Roastery View Table' },
-    { id: 6, seats: 2, status: 'Free', zone: 'Cozy Library Nook' },
-    { id: 7, seats: 8, status: 'Free', zone: 'VIP Lounge Suite' },
-    { id: 8, seats: 4, status: 'Free', zone: 'Garden Patio Table' },
-  ];
-
-  const sourceTables = adminTables.length > 0 ? adminTables : defaultTables;
-
-  const displayTables = useMemo(() => {
-    return sourceTables.map((t, idx) => {
-      const fallback = defaultTables[idx % defaultTables.length];
-      return {
-        ...fallback,
-        ...t,
-        zone: t.zone || fallback.zone,
-      };
-    }).filter(t => {
-      if (capacityFilter === '2') return t.seats <= 2;
-      if (capacityFilter === '4') return t.seats === 3 || t.seats === 4;
-      if (capacityFilter === 'large') return t.seats >= 5;
-      return true;
-    });
-  }, [sourceTables, capacityFilter]);
-
   return (
     <div className="w-full max-w-7xl mx-auto py-3 flex flex-col gap-6 animate-fade-in">
       {/* Artisanal Café Header Bar */}
@@ -264,7 +264,8 @@ export default function HomePage() {
         {displayTables.map(t => {
           const tableNumStr = String(t.id).padStart(2, '0');
           // Use serverIp (network IP) so mobile phones can resolve it instead of localhost
-          const tableTargetUrl = `http://${serverIp === 'localhost' ? window.location.hostname : serverIp}:5174/table/${t.id}`;
+          const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+          const tableTargetUrl = `http://${serverIp === 'localhost' ? hostname : serverIp}:5174/table/${t.id}`;
           // Generate high quality QR code URL with margin and High error correction (ecc=H)
           const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&ecc=H&data=${encodeURIComponent(tableTargetUrl)}`;
 
@@ -299,10 +300,17 @@ export default function HomePage() {
                     <Users className="w-2.5 h-2.5 text-caramel-600" />
                     <span>{t.seats || 4}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-[9px] font-semibold text-emerald-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Ready</span>
-                  </div>
+                  {t.status === 'Occupied' ? (
+                    <div className="flex items-center gap-1 text-[9px] font-semibold text-amber-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      <span>Occupied</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-[9px] font-semibold text-emerald-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>Ready</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -327,9 +335,13 @@ export default function HomePage() {
                 <Link
                   href={`/table/${t.id}`}
                   onClick={() => handleEnterTable(t.id)}
-                  className="btn-primary w-full py-2 text-[11px] font-bold flex items-center justify-center gap-1 shadow-gold group-hover:scale-[1.02] transition-all duration-200 rounded-lg"
+                  className={`w-full py-2 text-[11px] font-bold flex items-center justify-center gap-1 shadow-gold group-hover:scale-[1.02] transition-all duration-200 rounded-lg ${
+                    t.status === 'Occupied'
+                      ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                      : 'btn-primary'
+                  }`}
                 >
-                  <span>Open</span>
+                  <span>{t.status === 'Occupied' ? 'Occupied (Join)' : 'Open'}</span>
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>

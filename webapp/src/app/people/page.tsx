@@ -15,10 +15,7 @@ export default function PeopleCountPage() {
   const [step, setStep] = useState<1 | 2>(1);
 
   const initialNames = () => {
-    if (tableInfo?.guestNames && tableInfo.guestNames.length > 0) {
-      return tableInfo.guestNames;
-    }
-    return [user?.n || user?.name || 'Karan'];
+    return [user?.n || user?.name || ''];
   };
 
   const [names, setNames] = useState<string[]>(initialNames());
@@ -33,7 +30,7 @@ export default function PeopleCountPage() {
       adjustedNames[i] = names[i];
     }
     if (!adjustedNames[0]) {
-      adjustedNames[0] = user?.n || user?.name || 'Host';
+      adjustedNames[0] = user?.n || user?.name || '';
     }
     setNames(adjustedNames);
     setStep(2);

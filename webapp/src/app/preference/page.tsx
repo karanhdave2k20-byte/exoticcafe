@@ -14,14 +14,12 @@ export default function PreferencePage() {
   const router = useRouter();
   const { tableInfo, setSessionInterests, showToast } = useStore();
 
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(
-    tableInfo?.interests || ['Cricket', 'Music']
-  );
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
   const interestOptions = [
     { id: 'Cricket', label: 'Cricket', icon: Trophy, desc: 'Live match scorecards & highlights', color: 'text-caramel-600 bg-caramel-50' },
     { id: 'News', label: 'News', icon: Newspaper, desc: 'Curated world, culinary & tech updates', color: 'text-blue-600 bg-blue-50' },
-    { id: 'AI Barista', label: 'AI Barista', icon: Sparkles, desc: 'Chat with our Gemini Culinary Companion', color: 'text-amber-600 bg-amber-50' },
+    { id: 'AI Barista', label: 'AI Mitra', icon: Sparkles, desc: 'Chat with our Gemini Culinary Mitra', color: 'text-purple-600 bg-purple-50' },
     { id: 'Short Videos', label: 'Short Videos', icon: Video, desc: 'Aesthetic café clips & food craft shorts', color: 'text-rose-600 bg-rose-50' },
     { id: 'Music', label: 'Music', icon: Music, desc: 'Ambient lo-fi beats & café jazz chords', color: 'text-purple-600 bg-purple-50' },
     { id: 'Games', label: 'Games', icon: Gamepad2, desc: '2048 café puzzle & table challenges', color: 'text-emerald-600 bg-emerald-50' },
@@ -40,6 +38,14 @@ export default function PreferencePage() {
     if (selectedInterests.length === 0) {
       showToast('Select at least one interest to personalize your wait!', 'warning');
       return;
+    }
+
+    if (typeof window !== 'undefined') {
+      if (selectedInterests.length > 0) {
+        sessionStorage.setItem('th_auto_open_mitra_topic', selectedInterests[0]);
+      } else {
+        sessionStorage.removeItem('th_auto_open_mitra_topic');
+      }
     }
 
     await setSessionInterests(selectedInterests);

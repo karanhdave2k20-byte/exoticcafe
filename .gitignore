@@ -45,3 +45,5 @@ lint_output.txt
 run_tunnel.cjs
 run_pinggy.cjs
 watch_tunnel.cjs
+.next/
+*.tsbuildinfo

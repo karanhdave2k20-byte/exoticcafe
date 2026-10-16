@@ -95,6 +95,14 @@ interface StoreContextType {
   toasts: ToastMessage[];
   showToast: (message: string, type?: 'info' | 'success' | 'error' | 'warning') => void;
   removeToast: (id: number) => void;
+
+  // Left Navigator & AI Chat
+  isLeftAiChatOpen: boolean;
+  setIsLeftAiChatOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleLeftAiChat: () => void;
+  isLeftNavOpen: boolean;
+  setIsLeftNavOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleLeftNav: () => void;
 }
 
 const defaultMenu: MenuItem[] = [
@@ -111,7 +119,9 @@ const defaultMenu: MenuItem[] = [
   { id: 11, name: 'Iced Salted Caramel Frappé', category: 'Beverages', price: 280, img: '/latte.png', isVeg: true, rating: 4.7, prepTime: 6, desc: 'Chilled cold brew whipped with salted caramel, crushed ice, and Chantilly crema.', isAvailable: true, isBestSeller: true },
   { id: 12, name: 'Dark Chocolate Fudge Brownie', category: 'Desserts', price: 220, img: '/cheesecake.png', isVeg: true, rating: 4.9, prepTime: 4, desc: 'Warm 70% Belgian chocolate center topped with warm ganache and sea salt flakes.', isAvailable: true, isPopular: true },
   { id: 13, name: 'Vanilla Bean Cheesecake', category: 'Desserts', price: 350, img: '/cheesecake.png', isVeg: true, rating: 4.9, prepTime: 5, desc: 'Creamy Madagascar vanilla cheesecake resting on a buttery honey-graham crust.', isAvailable: true, isNew: true },
-  { id: 14, name: 'Table Hive Fiesta Combo', category: 'Combos', price: 599, img: '/cappuccino.png', isVeg: true, rating: 4.9, prepTime: 15, desc: 'Choice of 1 Pizza + 1 Brioche Burger + 2 Iced Beverages. Perfect for sharing!', isAvailable: true, isBestSeller: true }
+  { id: 14, name: 'Table Hive Fiesta Combo', category: 'Combos', price: 599, img: '/cappuccino.png', isVeg: true, rating: 4.9, prepTime: 15, desc: 'Choice of 1 Pizza + 1 Brioche Burger + 2 Iced Beverages. Perfect for sharing!', isAvailable: true, isBestSeller: true },
+  { id: 15, name: 'Avocado Toast & Truffle Poached Egg', category: 'Starters', price: 320, img: '/croissant.png', isVeg: false, rating: 4.9, prepTime: 10, desc: 'Organic seed sourdough with Haas avocados and a soft truffle poached egg.', isAvailable: true, isNew: true },
+  { id: 16, name: 'Toasted Hazelnut Latte', category: 'Beverages', price: 300, img: '/latte.png', isVeg: true, rating: 4.8, prepTime: 6, desc: 'Roasted hazelnut infusion with velvety espresso and steamed milk.', isAvailable: true }
 ];
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -154,6 +164,18 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [serverIp, setServerIp] = useState('localhost');
   const [tunnelUrl, setTunnelUrl] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  // Left Navigator & AI Chat Drawer
+  const [isLeftAiChatOpen, setIsLeftAiChatOpen] = useState(false);
+  const [isLeftNavOpen, setIsLeftNavOpen] = useState(false);
+
+  const toggleLeftAiChat = useCallback(() => {
+    setIsLeftAiChatOpen(prev => !prev);
+  }, []);
+
+  const toggleLeftNav = useCallback(() => {
+    setIsLeftNavOpen(prev => !prev);
+  }, []);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -324,6 +346,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       if (res.ok) {
         const data = await res.json();
         setCurrentSession(data.session);
+        setCart(data.session.cart || []);
         setTableInfo(prev => ({
           ...prev,
           tableNo: String(tableNo),
@@ -807,6 +830,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         toasts,
         showToast,
         removeToast,
+        isLeftAiChatOpen,
+        setIsLeftAiChatOpen,
+        toggleLeftAiChat,
+        isLeftNavOpen,
+        setIsLeftNavOpen,
+        toggleLeftNav,
       }}
     >
       {children}

@@ -976,7 +976,7 @@ app.post('/api/ai/chat', async (req, res) => {
     // Try gemini-3.5-flash to avoid 503 overloads on latest
     const model = genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
-      systemInstruction: `You are TableHive's AI Culinary Sommelier & Café Assistant at "Exotic Café".
+      systemInstruction: `You are TableHive's AI Mitra, the friendly café assistant & culinary companion at "Exotic Café".
 You help customers seated at tables choose food, answer questions about flavor pairings, entertain them while they wait, and suggest delicious combinations.
 Current Café Menu:
 ${menuSummary}
@@ -1015,6 +1015,252 @@ Rules:
       error: error.message || "Failed to reach AI service."
     });
   }
+});
+
+// 🎵 AI Mitra Music News & Trending Headlines
+app.get('/api/ai/music-news', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey) {
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey.trim());
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const prompt = `Generate 4 realistic, exciting, and trending music news headlines with short 1-2 sentence summaries for music enthusiasts dining at an artisanal café. Topics should cover indie coffeehouse releases, global music events, acoustic sessions, and trending artists.
+Return ONLY valid JSON array with keys: title, summary, category (e.g. 'Trending', 'Release', 'Live', 'Vibes'), time (e.g. '15m ago', '1h ago').`;
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('AI generation timeout')), 3500));
+      const result = await Promise.race([model.generateContent(prompt), timeoutPromise]);
+      const text = result.response.text();
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        return res.status(200).json({ news: JSON.parse(match[0]) });
+      }
+    }
+  } catch (e) {
+    console.warn('[AI MUSIC NEWS] Fallback to curated news:', e.message);
+  }
+
+  res.status(200).json({
+    news: [
+      {
+        title: "Lo-Fi Beats Surpass 10 Billion Streams in Artisan Cafés Worldwide",
+        summary: "Ambient study and coffeehouse lo-fi beats reach an all-time high as acoustic dining spaces curate personalized customer listening sessions.",
+        category: "Trending",
+        time: "15m ago"
+      },
+      {
+        title: "Coldplay Announces Surprise Intimate Acoustic Café Tour",
+        summary: "The band reveals plans for unannounced acoustic pop-ups in select indie coffeehouses across global metropolises this autumn.",
+        category: "Live",
+        time: "45m ago"
+      },
+      {
+        title: "Grammy 2026 Nominees: Jazz & Acoustic Categories Shine",
+        summary: "A surge in organic, live-recorded acoustic arrangements dominates this year's top nominations, highlighting a return to warm analog sounds.",
+        category: "Awards",
+        time: "2h ago"
+      },
+      {
+        title: "The Science of Coffee & Chords: Why Jazz Enhances Flavor",
+        summary: "New culinary psychology research shows mellow acoustic and jazz frequencies heighten our taste receptors' perception of dark chocolate and espresso crema.",
+        category: "Science",
+        time: "3h ago"
+      }
+    ]
+  });
+});
+
+// 🏏 🎵 📰 🎬 🎮 Universal Topic News & Live Updates for AI Mitra
+app.get('/api/ai/topic-news', async (req, res) => {
+  const topic = (req.query.topic || 'Cricket').trim();
+  
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey) {
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey.trim());
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const prompt = `Generate 4 realistic, exciting, and trending news headlines with short 1-2 sentence summaries for "${topic}" enthusiasts dining at an artisanal café.
+If topic is Cricket, include recent match results, IPL or international series highlights, top player performances, and upcoming fixtures.
+If topic is Movies, cover big box office releases, acclaimed director news, and film festival sensations.
+If topic is News, cover top world, technology, and culinary innovations.
+If topic is Games, cover gaming releases, esports milestones, and puzzle trends.
+If topic is Short Videos, cover trending food ASMR reels, coffee brewing artistry, and viral café culture.
+Return ONLY valid JSON array with keys: title, summary, category (e.g. 'Match Update', 'Trending', 'Live', 'Record', 'Analysis'), time (e.g. '10m ago', '1h ago', '3h ago').`;
+
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('AI generation timeout')), 3500));
+      const result = await Promise.race([model.generateContent(prompt), timeoutPromise]);
+      const text = result.response.text();
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        return res.status(200).json({ topic, news: JSON.parse(match[0]) });
+      }
+    }
+  } catch (e) {
+    console.warn(`[AI TOPIC NEWS (${topic})] Fallback to curated news:`, e.message);
+  }
+
+  // Curated fallbacks per topic
+  const fallbacks = {
+    Cricket: [
+      {
+        title: "India Pulls Off Sensational Chase in Last-Over T20 Thriller",
+        summary: "A breathtaking 82* from 44 balls seals an unbelievable victory in the final over, igniting stadium celebrations across the country.",
+        category: "Match Update",
+        time: "12m ago"
+      },
+      {
+        title: "IPL 2026: Fast Bowling Phenom Clocks Record 156.4 km/h",
+        summary: "The 21-year-old speedster dismantles the top order with searing yorkers and extreme pace in an unforgettable 4-wicket spell.",
+        category: "Record",
+        time: "40m ago"
+      },
+      {
+        title: "World Test Championship Standings: The Race to Lord's Heats Up",
+        summary: "With crucial away series approaching, cricket analysts break down the percentage points each team needs to qualify for the final.",
+        category: "Analysis",
+        time: "2h ago"
+      },
+      {
+        title: "Masterclass Behind the Stumps: Why Modern Keepers Are Redefining T20",
+        summary: "Innovative glovework, lightning stumpings, and proactive DRS calls turn wicketkeeper-captains into game-changing match winners.",
+        category: "Feature",
+        time: "4h ago"
+      }
+    ],
+    Music: [
+      {
+        title: "Lo-Fi Beats Surpass 10 Billion Streams in Artisan Cafés Worldwide",
+        summary: "Ambient study and coffeehouse lo-fi beats reach an all-time high as acoustic dining spaces curate personalized customer listening sessions.",
+        category: "Trending",
+        time: "15m ago"
+      },
+      {
+        title: "Coldplay Announces Surprise Intimate Acoustic Café Tour",
+        summary: "The band reveals plans for unannounced acoustic pop-ups in select indie coffeehouses across global metropolises this autumn.",
+        category: "Live",
+        time: "45m ago"
+      },
+      {
+        title: "Grammy 2026 Nominees: Jazz & Acoustic Categories Shine",
+        summary: "A surge in organic, live-recorded acoustic arrangements dominates this year's top nominations, highlighting a return to warm analog sounds.",
+        category: "Awards",
+        time: "2h ago"
+      },
+      {
+        title: "The Science of Coffee & Chords: Why Jazz Enhances Flavor",
+        summary: "New culinary psychology research shows mellow acoustic and jazz frequencies heighten our taste receptors' perception of dark chocolate and espresso crema.",
+        category: "Science",
+        time: "3h ago"
+      }
+    ],
+    News: [
+      {
+        title: "Global Tech Summit Unveils Next-Gen AI Assistants for Daily Dining",
+        summary: "Next-generation ambient AI agents promise to revolutionize hospitality and personal table assistance in restaurants globally.",
+        category: "Tech",
+        time: "20m ago"
+      },
+      {
+        title: "Artisanal Coffee Farming Revolutionizes Sustainable Agriculture",
+        summary: "Shade-grown, organic coffee beans from high-altitude estates see record demand as sustainable brewing practices take center stage.",
+        category: "Environment",
+        time: "1h ago"
+      },
+      {
+        title: "Global Culinary Tourism Hits All-Time High in 2026",
+        summary: "Travelers increasingly design itineraries around farm-to-table dining and heritage coffee tasting experiences across continents.",
+        category: "Culture",
+        time: "2h ago"
+      },
+      {
+        title: "Space Exploration: Next Lunar Rover Transmits Ultra-HD Footage",
+        summary: "Scientists celebrate as the newest deep-space explorer beams back crystal-clear panoramic imagery of lunar highlands.",
+        category: "Science",
+        time: "5h ago"
+      }
+    ],
+    Movies: [
+      {
+        title: "Christopher Nolan's Upcoming Epic Breaks IMAX Pre-Sale Records",
+        summary: "Cinematic enthusiasts flock to secure opening weekend 70mm tickets as early test screenings receive unprecedented praise.",
+        category: "Box Office",
+        time: "25m ago"
+      },
+      {
+        title: "Indie Cinema Triumph: Café-Set Drama Wins Golden Palm",
+        summary: "A poetic, single-location narrative exploring human connection over cups of espresso wows international film festival judges.",
+        category: "Awards",
+        time: "1h ago"
+      },
+      {
+        title: "Sci-Fi Sensation Announces Sequel with Groundbreaking Practical FX",
+        summary: "The visionary director confirms that over 90% of visual effects will be shot practically using full-scale architectural rigs.",
+        category: "Production",
+        time: "3h ago"
+      },
+      {
+        title: "Classic Cinema Revival: 4K Restorations Fill Theaters",
+        summary: "Audiences rediscovering vintage cinematic masterpieces in restored high-definition formats signal a nostalgic movie boom.",
+        category: "Trends",
+        time: "6h ago"
+      }
+    ],
+    Games: [
+      {
+        title: "Open-World RPG Sells 5 Million Copies in Record 48 Hours",
+        summary: "Players praise the intricate world design and responsive companion AI that adapts to individual play styles seamlessly.",
+        category: "Release",
+        time: "30m ago"
+      },
+      {
+        title: "Esports Championship Grand Finals Shatter Global Viewership Record",
+        summary: "Over 8 million concurrent viewers tune in as the decisive map goes to triple overtime in a legendary showdown.",
+        category: "Esports",
+        time: "2h ago"
+      },
+      {
+        title: "Cozy Café Puzzle Games Experience Massive Surge in Popularity",
+        summary: "Casual brain-teasers and relaxing coffeehouse management sims become the go-to pastime for table dining sessions.",
+        category: "Trends",
+        time: "4h ago"
+      },
+      {
+        title: "Next-Gen Haptic Controllers Bring In-Game Textures to Life",
+        summary: "Hardware engineers unveil micro-fluidic feedback technology that lets gamers feel raindrops, sand, and wood grain in their hands.",
+        category: "Tech",
+        time: "7h ago"
+      }
+    ],
+    'Short Videos': [
+      {
+        title: "Viral Barista Latte Art Video Surpasses 50 Million Views",
+        summary: "A mesmerizing 30-second swan etching poured in velvety micro-foam captivates coffee lovers across global social feeds.",
+        category: "Viral",
+        time: "15m ago"
+      },
+      {
+        title: "The ASMR Sourdough Slicing Trend Taking Over Food Reels",
+        summary: "Crunchy artisan crust sounds and steaming airy crumb reveal videos dominate food enthusiast channels this week.",
+        category: "Food Craft",
+        time: "1h ago"
+      },
+      {
+        title: "1-Minute Cooking Hacks: Master Chefs Share Restaurant Secrets",
+        summary: "Top culinary creators demonstrate quick knife skills, pan deglazing, and herb emulsifications in rapid bite-sized clips.",
+        category: "Tutorial",
+        time: "3h ago"
+      },
+      {
+        title: "Café Aesthetic Vlogs: The Soothing Rise of Slow Living Content",
+        summary: "Cinematic, slow-paced café morning routines filmed on vintage lenses become the ultimate ambient comfort watch.",
+        category: "Lifestyle",
+        time: "5h ago"
+      }
+    ]
+  };
+
+  const defaultTopicFallback = fallbacks[topic] || fallbacks.Cricket;
+  res.status(200).json({ topic, news: defaultTopicFallback });
 });
 
 // 2. AI Food Recommendations

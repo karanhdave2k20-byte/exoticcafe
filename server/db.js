@@ -69,7 +69,9 @@ async function seedMenu(database) {
         { id: 11, name: 'Iced Salted Caramel Frappé', category: 'Beverages', price: 280, img: '/latte.png', isVeg: true, rating: 4.7, prepTime: 6, desc: 'Chilled cold brew whipped with salted caramel, crushed ice, and Chantilly crema.', isAvailable: true, isBestSeller: true },
         { id: 12, name: 'Dark Chocolate Fudge Brownie', category: 'Desserts', price: 220, img: '/cheesecake.png', isVeg: true, rating: 4.9, prepTime: 4, desc: 'Warm 70% Belgian chocolate center topped with warm ganache and sea salt flakes.', isAvailable: true, isPopular: true },
         { id: 13, name: 'Vanilla Bean Cheesecake', category: 'Desserts', price: 350, img: '/cheesecake.png', isVeg: true, rating: 4.9, prepTime: 5, desc: 'Creamy Madagascar vanilla cheesecake resting on a buttery honey-graham crust.', isAvailable: true, isNew: true },
-        { id: 14, name: 'Table Hive Fiesta Combo', category: 'Combos', price: 599, img: '/cappuccino.png', isVeg: true, rating: 4.9, prepTime: 15, desc: 'Choice of 1 Pizza + 1 Brioche Burger + 2 Iced Beverages. Perfect for sharing!', isAvailable: true, isBestSeller: true }
+        { id: 14, name: 'Table Hive Fiesta Combo', category: 'Combos', price: 599, img: '/cappuccino.png', isVeg: true, rating: 4.9, prepTime: 15, desc: 'Choice of 1 Pizza + 1 Brioche Burger + 2 Iced Beverages. Perfect for sharing!', isAvailable: true, isBestSeller: true },
+        { id: 15, name: 'Avocado Toast & Truffle Poached Egg', category: 'Starters', price: 320, img: '/croissant.png', isVeg: false, rating: 4.9, prepTime: 10, desc: 'Organic seed sourdough with Haas avocados and a soft truffle poached egg.', isAvailable: true, isNew: true },
+        { id: 16, name: 'Toasted Hazelnut Latte', category: 'Beverages', price: 300, img: '/latte.png', isVeg: true, rating: 4.8, prepTime: 6, desc: 'Roasted hazelnut infusion with velvety espresso and steamed milk.', isAvailable: true }
       ];
       await menuCol.insertMany(defaultMenu);
       console.log('✅ Menu seeded successfully');
