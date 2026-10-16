@@ -31,14 +31,10 @@ export default function ClientShell({ children }: { children: ReactNode }) {
       {/* Interactive Left-sliding AI Chat Drawer */}
       <LeftAiChatDrawer />
 
-      {/* Main Content Area: dynamically shifts to the right on desktop when rail / chat is open */}
+      {/* Main Content Area: properly sized and never squished into split screen */}
       <main 
         className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 transition-all duration-300 ease-in-out ${
-          isEnteringFlow
-            ? 'max-w-5xl'
-            : isLeftAiChatOpen 
-              ? 'lg:pl-[425px] max-w-[1700px]' 
-              : 'lg:pl-20 max-w-7xl'
+          isEnteringFlow ? 'max-w-5xl' : 'lg:pl-20 max-w-7xl'
         }`}
       >
         {children}

@@ -90,7 +90,7 @@ export default function LeftNavigator() {
         {/* Top: AI Chat Primary Feature Button */}
         <div className="px-2 space-y-3">
           <button
-            onClick={() => setIsLeftAiChatOpen(true)}
+            onClick={() => setIsLeftAiChatOpen(prev => !prev)}
             className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition-all duration-200 ${
               isLeftAiChatOpen
                 ? 'bg-purple-600 text-white shadow-md'

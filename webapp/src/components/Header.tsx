@@ -40,7 +40,7 @@ export default function Header() {
         {/* Right Actions: AI Chat button & Admin Panel */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsLeftAiChatOpen(true)}
+            onClick={() => setIsLeftAiChatOpen(prev => !prev)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 text-purple-900 border border-purple-200 text-xs font-bold transition-all shadow-xs"
             title="Open AI Mitra Chat"
           >

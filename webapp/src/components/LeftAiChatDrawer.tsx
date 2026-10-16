@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   X, Send, Bot, User, Trash2, Sparkles, Coffee, 
   Loader2, Plus, Check, Music, Play, Pause, 
   SkipForward, SkipBack, Volume2, VolumeX, RefreshCw, 
   Newspaper, Headphones, ArrowRight, MessageSquare, Radio,
   Trophy, Film, Gamepad2, Video, ChevronDown, ChevronUp,
-  ExternalLink, Flame, Zap, HelpCircle, Compass
+  ExternalLink, Flame, Zap, HelpCircle, Compass, ShoppingBag,
+  CheckCircle2, Clock
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { MenuItem } from '../types';
@@ -16,6 +18,14 @@ interface ChatMessage {
   role: 'user' | 'model' | 'ai';
   text: string;
   followUps?: string[];
+  orderConfirmation?: {
+    orderId: string;
+    tableNo: string;
+    itemsCount: number;
+    totalAmount: string;
+  };
+  orderPromptDish?: MenuItem;
+  orderTrackPrompt?: boolean;
 }
 
 interface TopicNewsItem {
@@ -97,12 +107,16 @@ const TOPIC_QUESTIONS: Record<string, SelectableQuestion[]> = {
 };
 
 export default function LeftAiChatDrawer() {
+  const router = useRouter();
   const { 
     isLeftAiChatOpen, 
     setIsLeftAiChatOpen, 
     showToast, 
     mockMenu, 
     addToCart,
+    cart,
+    cartTotal,
+    placeOrder,
     tableInfo,
     currentSession
   } = useStore();
@@ -124,6 +138,7 @@ export default function LeftAiChatDrawer() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [addedItemIds, setAddedItemIds] = useState<number[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -146,7 +161,7 @@ export default function LeftAiChatDrawer() {
 
   const currentTrack = RADIO_STREAMS[currentTrackIndex];
 
-  // Sync selected question topic with active interest
+  // Auto-switch question topic when table primary interest changes
   useEffect(() => {
     if (primaryTopic) {
       setSelectedQuestionTopic(primaryTopic);
@@ -291,7 +306,7 @@ export default function LeftAiChatDrawer() {
     }
   }, [messages, isLeftAiChatOpen, activeTab]);
 
-  // Handle ESC key to close
+  // Focus input when opened & handle Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isLeftAiChatOpen) {
@@ -303,15 +318,15 @@ export default function LeftAiChatDrawer() {
   }, [isLeftAiChatOpen, setIsLeftAiChatOpen]);
 
   const clearHistory = () => {
-    const welcome: ChatMessage[] = [
+    const welcome = [
       {
-        role: 'model',
+        role: 'model' as const,
         text: getWelcomeText(primaryTopic),
       },
     ];
     setMessages(welcome);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(welcome));
+      localStorage.removeItem(STORAGE_KEY);
     } catch (e) {}
     showToast('Conversation cleared', 'info');
   };
@@ -347,11 +362,178 @@ export default function LeftAiChatDrawer() {
     ];
   };
 
-  const handleSendMessage = async (textToSend?: string) => {
-    const query = (textToSend || input).trim();
-    if (!query || isLoading) return;
+  // 🚀 DIRECT PLACE ORDER FROM CHAT
+  const handlePlaceOrderFromChat = async () => {
+    if (cart.length === 0) {
+      showToast('Your table cart is empty! Add a dish first.', 'warning');
+      return;
+    }
 
-    const userMessage: ChatMessage = { role: 'user', text: query };
+    setIsPlacingOrder(true);
+    try {
+      const itemsSummary = cart.map(c => `${c.quantity}x ${c.name}`).join(', ');
+      const totalFormatted = (cartTotal * 1.08).toFixed(2);
+      const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+      const orderId = await placeOrder();
+      if (orderId) {
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'model',
+            text: `🎉 **Order #${orderId} Confirmed & Sent to Kitchen!**\n\nYour table order for **Table #${tableInfo?.tableNo || '1'}** (${itemsSummary}) has been dispatched directly to the kitchen chef! 👨‍🍳🔥`,
+            orderConfirmation: {
+              orderId,
+              tableNo: String(tableInfo?.tableNo || '1'),
+              itemsCount: totalCount,
+              totalAmount: totalFormatted,
+            },
+            followUps: [
+              '📍 Track my order status live',
+              '☕ Recommend iced drinks while we wait',
+              '🎮 Play table trivia while food is cooking'
+            ]
+          }
+        ]);
+        showToast(`Order #${orderId} sent to Kitchen! 👨‍🍳`, 'success');
+      }
+    } catch (e: any) {
+      showToast('Failed to place order. Please try again.', 'error');
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
+  // ⚡ QUICK INSTANT ORDER OF A SPECIFIC DISH
+  const handleQuickOrderDish = async (dish: MenuItem) => {
+    addToCart(dish);
+    setAddedItemIds(prev => [...prev, dish.id]);
+    setIsPlacingOrder(true);
+
+    try {
+      const orderId = await placeOrder();
+      if (orderId) {
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'model',
+            text: `⚡ **Order Placed Instantly!**\n\n1x **${dish.name}** (₹${dish.price}) has been ordered for **Table #${tableInfo?.tableNo || '1'}**! Order #${orderId} is being prepared by our chef right now! 👨‍🍳`,
+            orderConfirmation: {
+              orderId,
+              tableNo: String(tableInfo?.tableNo || '1'),
+              itemsCount: 1,
+              totalAmount: (dish.price * 1.08).toFixed(2),
+            },
+            followUps: [
+              '📍 Track my order status live',
+              '🥤 Recommend cold drinks to pair with this',
+              '🍰 What sweet dessert do you recommend?'
+            ]
+          }
+        ]);
+        showToast(`Ordered ${dish.name} for Table #${tableInfo?.tableNo || '1'}!`, 'success');
+      }
+    } catch (e) {
+      showToast('Failed to place order', 'error');
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
+  // Find dish in menu by name or partial name
+  const findDishByQuery = (q: string): MenuItem | undefined => {
+    if (!mockMenu || mockMenu.length === 0) return undefined;
+    const lower = q.toLowerCase();
+    return mockMenu.find(dish => {
+      const name = dish.name.toLowerCase();
+      if (lower.includes(name)) return true;
+      if (name.includes('peri-peri') && lower.includes('peri')) return true;
+      if (name.includes('fries') && lower.includes('fries')) return true;
+      if (name.includes('cheesecake') && lower.includes('cheesecake')) return true;
+      if (name.includes('brownie') && lower.includes('brownie')) return true;
+      if (name.includes('crostini') && lower.includes('crostini')) return true;
+      if (name.includes('burger') && lower.includes('burger')) return true;
+      if (name.includes('pizza') && lower.includes('pizza')) return true;
+      if (name.includes('espresso') && lower.includes('espresso')) return true;
+      if (name.includes('cappuccino') && lower.includes('cappuccino')) return true;
+      if (name.includes('latte') && lower.includes('latte')) return true;
+      if (name.includes('toast') && lower.includes('toast')) return true;
+      if (name.includes('combo') && lower.includes('combo')) return true;
+      return false;
+    });
+  };
+
+  const handleSendMessage = async (textToSend?: string) => {
+    const rawQuery = (textToSend || input).trim();
+    if (!rawQuery || isLoading) return;
+
+    const lowerQuery = rawQuery.toLowerCase();
+
+    // 1. Check if user clicked "Track my order" prompt
+    if (lowerQuery.includes('track') && lowerQuery.includes('order')) {
+      const userMessage: ChatMessage = { role: 'user', text: rawQuery };
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          role: 'model',
+          text: `📍 You can track your Table #${tableInfo?.tableNo || '1'} order live! Tap the button below to view real-time kitchen progress from 'Received' to 'Ready'.`,
+          orderTrackPrompt: true
+        }
+      ]);
+      setInput('');
+      return;
+    }
+
+    // 2. Check if user clicked an "Add [dish]..." prompt or asked to add/order a dish
+    const isOrderIntent = 
+      lowerQuery.includes('give order') || 
+      lowerQuery.includes('place order') || 
+      lowerQuery.includes('order now') || 
+      lowerQuery.includes('submit order') ||
+      lowerQuery.includes('confirm order') ||
+      lowerQuery.startsWith('order ') ||
+      lowerQuery.includes('i want to order');
+
+    const isAddIntent = lowerQuery.includes('add ') || lowerQuery.includes('want ') || isOrderIntent;
+    const matchedDish = findDishByQuery(lowerQuery);
+
+    if (matchedDish && isAddIntent) {
+      // Add dish to table cart
+      addToCart(matchedDish);
+      setAddedItemIds(prev => [...prev, matchedDish.id]);
+
+      const userMessage: ChatMessage = { role: 'user', text: rawQuery };
+      const aiReplyMessage: ChatMessage = {
+        role: 'model',
+        text: `✅ **Added ${matchedDish.name} (₹${matchedDish.price}) to your Table #${tableInfo?.tableNo || '1'} cart!** 🍽️\n\nTap **"Place Order Now"** below to send it straight to the kitchen chef, or choose more treats!`,
+        orderPromptDish: matchedDish,
+        followUps: [
+          '⚡ Yes, Place Order to Kitchen Now!',
+          '🥤 Suggest a refreshing drink to pair with it',
+          '🍰 What sweet dessert do you recommend?'
+        ]
+      };
+
+      setMessages(prev => [...prev, userMessage, aiReplyMessage]);
+      setInput('');
+      showToast(`Added ${matchedDish.name} to Table #${tableInfo?.tableNo || '1'} cart!`, 'success');
+      return;
+    }
+
+    // 3. User clicked "Yes, Place Order to Kitchen Now!" or typed "give order" / "place order"
+    if (isOrderIntent || lowerQuery.includes('place order')) {
+      if (cart.length > 0) {
+        const userMessage: ChatMessage = { role: 'user', text: rawQuery };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        await handlePlaceOrderFromChat();
+        return;
+      }
+    }
+
+    // 4. Standard conversational AI query
+    const userMessage: ChatMessage = { role: 'user', text: rawQuery };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput('');
@@ -366,21 +548,21 @@ export default function LeftAiChatDrawer() {
 
       const data = await res.json();
       if (res.ok && data.reply) {
-        const followUps = getFollowUpQuestions(query);
+        const followUps = getFollowUpQuestions(rawQuery);
         setMessages(prev => [...prev, { role: 'model', text: data.reply, followUps }]);
       } else {
         throw new Error(data.error || 'Could not reach AI Mitra.');
       }
     } catch (err: any) {
-      // Fallback smart reply if Google API is congested
+      // Intelligent fallback
       let fallbackReply = `Our kitchen is sizzling! Peri-Peri Fries and Artisan Espresso are always ready for your table.`;
-      const q = query.toLowerCase();
+      const q = rawQuery.toLowerCase();
       if (q.includes('cricket') || q.includes('score') || q.includes('match')) {
         fallbackReply = `🏏 Right now in the thrilling IND vs AUS 3rd T20I at Eden Gardens: India is 188/4 in 18.2 overs, needing just 14 runs from 10 balls! Shubman Gill (68*) and Hardik Pandya (32*) are batting with immense power! For these final overs, our hot Peri-Peri Fries (₹160) and loaded Nachos make the ultimate match companion!`;
       } else if (q.includes('music') || q.includes('lo-fi')) {
         fallbackReply = `🎵 Our café's Lo-Fi Lounge is playing live! Smooth acoustic and jazz chords naturally heighten taste receptors for dark chocolate and espresso crema. Try pairing our Toasted Hazelnut Latte with a warm Chocolate Fudge Brownie!`;
       }
-      const followUps = getFollowUpQuestions(query);
+      const followUps = getFollowUpQuestions(rawQuery);
       setMessages(prev => [
         ...prev,
         {
@@ -425,10 +607,7 @@ export default function LeftAiChatDrawer() {
   const handleQuickAddDish = (dish: MenuItem) => {
     addToCart(dish);
     setAddedItemIds(prev => [...prev, dish.id]);
-    showToast(`Added ${dish.name} to cart!`, 'success');
-    setTimeout(() => {
-      setAddedItemIds(prev => prev.filter(id => id !== dish.id));
-    }, 2000);
+    showToast(`Added ${dish.name} to table cart!`, 'success');
   };
 
   // Helper for topic icons
@@ -474,16 +653,16 @@ export default function LeftAiChatDrawer() {
         }}
       />
 
-      {/* Mobile Backdrop */}
+      {/* Universal Backdrop for clean focused drawer overlay across all screen sizes */}
       <div 
         onClick={() => setIsLeftAiChatOpen(false)}
-        className="fixed inset-0 bg-slate-900/10 z-40 lg:hidden transition-opacity"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 transition-opacity animate-fade-in"
         aria-hidden="true"
       />
 
-      {/* Left Chat Docked Panel */}
+      {/* Left Chat Docked Drawer */}
       <aside 
-        className="fixed top-0 lg:top-[61px] bottom-0 left-0 z-40 w-full sm:w-[440px] flex flex-col bg-white border-r border-slate-200/90 shadow-xl transition-all duration-300 ease-in-out h-[100dvh] lg:h-[calc(100dvh-61px)] animate-slide-right"
+        className="fixed top-0 lg:top-[61px] bottom-0 left-0 z-50 w-full sm:w-[460px] flex flex-col bg-white border-r border-slate-200/90 shadow-2xl transition-all duration-300 ease-in-out h-[100dvh] lg:h-[calc(100dvh-61px)] animate-slide-right"
         role="dialog"
         aria-label="AI Mitra Chat"
       >
@@ -499,23 +678,21 @@ export default function LeftAiChatDrawer() {
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900" />
             </div>
 
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-bold text-xs sm:text-sm text-white tracking-wide">
-                  AI Mitra
-                </h3>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm tracking-wide leading-tight text-white">AI Mitra</h3>
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                   Live
                 </span>
                 {primaryTopic && (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/30 text-purple-200 border border-purple-400/30">
+                  <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-500/20 text-purple-200 border border-purple-400/30 truncate max-w-[100px]">
                     {primaryTopic}
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-purple-200/80 flex items-center gap-1 font-medium">
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                Gemini • Exotic Café Companion
+              <p className="text-[11px] text-purple-200/80 flex items-center gap-1 leading-tight">
+                <Sparkles className="w-3 h-3 text-amber-300 flex-shrink-0" />
+                <span>Table #{tableInfo?.tableNo || '1'} Assistant & Ordering</span>
               </p>
             </div>
           </div>
@@ -560,7 +737,7 @@ export default function LeftAiChatDrawer() {
                 {isChatTab ? (
                   <>
                     <MessageSquare className="w-3.5 h-3.5 text-amber-300" />
-                    <span>AI Chat & Questions</span>
+                    <span>AI Chat & Ordering</span>
                   </>
                 ) : (
                   <>
@@ -581,7 +758,7 @@ export default function LeftAiChatDrawer() {
         </div>
 
         {/* =========================================================================
-            TAB: AI MITRA CHAT VIEW (AUTOMATICALLY SHOWS SELECTABLE QUESTIONS!)
+            TAB: AI MITRA CHAT VIEW (AUTOMATIC SELECTABLE QUESTIONS & DIRECT ORDERING!)
         ========================================================================= */}
         {activeTab === 'chat' && (
           <>
@@ -617,7 +794,7 @@ export default function LeftAiChatDrawer() {
               </div>
             )}
 
-            {/* Smart Topic Header Bar (with quick jump to Scorecard or Feed) */}
+            {/* Smart Topic Header Bar (with quick jump to Scorecard) */}
             {primaryTopic === 'Cricket' && (
               <div className="px-3.5 py-2 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between text-xs flex-shrink-0 border-b border-blue-800/40">
                 <div className="flex items-center gap-2 truncate">
@@ -738,63 +915,162 @@ export default function LeftAiChatDrawer() {
                       </div>
                     )}
 
-                    {/* Interactive Dish Cards (if recommended by AI) */}
+                    {/* 🍽️ Interactive Dish Cards with +Add AND ⚡Order Now buttons */}
                     {dishes.length > 0 && (
-                      <div className="ml-9 mt-0.5 flex flex-col gap-1.5 max-w-[88%] w-full">
+                      <div className="ml-9 mt-0.5 flex flex-col gap-1.5 max-w-[92%] w-full">
                         {dishes.map(dish => {
-                          const isAdded = addedItemIds.includes(dish.id);
+                          const inCart = cart.some(c => c.id === dish.id);
                           return (
                             <div
                               key={dish.id}
-                              className="flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-purple-200 shadow-xs hover:border-purple-400 transition-all"
+                              className="flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-white border border-purple-200 shadow-xs hover:border-purple-400 transition-all"
                             >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dish.isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dish.isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                 <div className="truncate">
-                                  <p className="font-semibold text-xs text-slate-900 truncate">{dish.name}</p>
-                                  <p className="text-[11px] text-purple-700 font-bold">₹{dish.price}</p>
+                                  <p className="font-bold text-xs text-slate-900 truncate">{dish.name}</p>
+                                  <p className="text-[11px] text-purple-700 font-extrabold">₹{dish.price}</p>
                                 </div>
                               </div>
                               
-                              <button
-                                onClick={() => handleQuickAddDish(dish)}
-                                disabled={isAdded}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all flex-shrink-0 ${
-                                  isAdded 
-                                    ? 'bg-emerald-100 text-emerald-700' 
-                                    : 'bg-purple-600 hover:bg-purple-700 text-white shadow-xs'
-                                }`}
-                              >
-                                {isAdded ? (
-                                  <>
-                                    <Check className="w-3 h-3" />
-                                    Added
-                                  </>
-                                ) : (
-                                  <>
-                                    <Plus className="w-3 h-3" />
-                                    Add
-                                  </>
-                                )}
-                              </button>
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <button
+                                  onClick={() => handleQuickAddDish(dish)}
+                                  className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all ${
+                                    inCart 
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                      : 'bg-purple-100 hover:bg-purple-200 text-purple-800'
+                                  }`}
+                                  title="Add to Table Cart"
+                                >
+                                  {inCart ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-emerald-600" />
+                                      <span>In Cart</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="w-3 h-3" />
+                                      <span>Add</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                <button
+                                  onClick={() => handleQuickOrderDish(dish)}
+                                  disabled={isPlacingOrder}
+                                  className="px-3 py-1.5 rounded-xl text-[11px] font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-xs transition-all flex items-center gap-1 active:scale-95 disabled:opacity-50"
+                                  title="Order directly to kitchen for table"
+                                >
+                                  <Zap className="w-3 h-3" />
+                                  <span>Order Now</span>
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
                       </div>
                     )}
 
+                    {/* 🚀 Interactive Place Order Card (Triggered by 'Add dish' prompts) */}
+                    {msg.orderPromptDish && (
+                      <div className="ml-9 mt-1 p-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 shadow-sm max-w-[95%] w-full flex items-center justify-between gap-3 animate-fade-in">
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider block">
+                            Table #{tableInfo?.tableNo || '1'} Order Ready
+                          </span>
+                          <p className="text-xs font-bold text-slate-900 truncate">
+                            {msg.orderPromptDish.name} • ₹{msg.orderPromptDish.price}
+                          </p>
+                        </div>
+                        <button
+                          onClick={handlePlaceOrderFromChat}
+                          disabled={isPlacingOrder}
+                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all flex-shrink-0"
+                        >
+                          {isPlacingOrder ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Zap className="w-3.5 h-3.5" />
+                          )}
+                          <span>Place Order to Kitchen</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 🎉 Order Confirmation Ticket inside Chat */}
+                    {msg.orderConfirmation && (
+                      <div className="ml-9 mt-1 p-3.5 rounded-2xl bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-900 text-white border border-emerald-500/40 shadow-md max-w-[95%] w-full flex flex-col gap-2.5 animate-fade-in">
+                        <div className="flex items-center justify-between border-b border-emerald-500/30 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                            <span className="text-xs font-extrabold text-emerald-300 uppercase tracking-wider">
+                              Kitchen Order Transmitted
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono font-bold text-amber-300">
+                            #{msg.orderConfirmation.orderId}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs text-slate-200">
+                          <span>Session: <strong>Table #{msg.orderConfirmation.tableNo}</strong></span>
+                          <span>Total: <strong>₹{msg.orderConfirmation.totalAmount}</strong></span>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            onClick={() => {
+                              setIsLeftAiChatOpen(false);
+                              router.push('/track');
+                            }}
+                            className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                          >
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>Track Order Live</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => {
+                              setIsLeftAiChatOpen(false);
+                              router.push('/cart');
+                            }}
+                            className="py-1.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center transition-all"
+                          >
+                            View Receipt
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 📍 Direct Track Order Prompt */}
+                    {msg.orderTrackPrompt && (
+                      <div className="ml-9 mt-1 max-w-[95%] w-full">
+                        <button
+                          onClick={() => {
+                            setIsLeftAiChatOpen(false);
+                            router.push('/track');
+                          }}
+                          className="w-full py-2 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+                        >
+                          <Clock className="w-4 h-4" />
+                          <span>Open Live Order Tracking Page</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+
                     {/* Follow-up Selectable Questions under AI responses */}
                     {msg.followUps && msg.followUps.length > 0 && (
-                      <div className="ml-9 mt-1 flex flex-wrap gap-1.5 max-w-[90%]">
+                      <div className="ml-9 mt-1 flex flex-wrap gap-1.5 max-w-[92%]">
                         {msg.followUps.map((fu, fIdx) => (
                           <button
                             key={fIdx}
                             onClick={() => handleSendMessage(fu)}
                             disabled={isLoading}
-                            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 shadow-2xs transition-colors flex items-center gap-1"
+                            className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white hover:bg-purple-100/70 border border-purple-200/90 text-purple-900 transition-all shadow-2xs hover:shadow-xs text-left"
                           >
-                            <span>{fu}</span>
-                            <ArrowRight className="w-3 h-3 text-purple-500" />
+                            {fu}
                           </button>
                         ))}
                       </div>
@@ -804,33 +1080,85 @@ export default function LeftAiChatDrawer() {
               })}
 
               {isLoading && (
-                <div className="flex items-center gap-2 text-xs text-purple-900 bg-white border border-purple-200 px-3 py-2 rounded-2xl rounded-tl-none max-w-[85%] shadow-xs ml-9">
-                  <Loader2 className="w-3.5 h-3.5 text-purple-600 animate-spin" />
-                  <span>AI Mitra is crafting recommendations...</span>
+                <div className="flex items-center gap-2.5 text-xs text-purple-700 animate-pulse ml-2">
+                  <div className="w-7 h-7 rounded-xl bg-purple-100 flex items-center justify-center">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-700" />
+                  </div>
+                  <span className="font-medium">AI Mitra is thinking & checking kitchen pairings...</span>
                 </div>
               )}
 
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Suggestion Chips (Above Text Input) */}
-            <div 
-              className="px-3 py-2 bg-white border-t border-slate-100 overflow-x-auto flex items-center gap-1.5 flex-shrink-0 no-scrollbar"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0 mr-1 flex items-center gap-1">
+            {/* 🛍️ Floating Table Cart & Instant Place Order Bar */}
+            {cart.length > 0 && (
+              <div className="mx-3 my-1.5 p-2.5 rounded-2xl bg-gradient-to-r from-emerald-900 via-teal-950 to-slate-900 text-white border border-emerald-500/40 shadow-lg flex items-center justify-between gap-2.5 flex-shrink-0 animate-fade-in">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-xl bg-emerald-500 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold leading-tight truncate">
+                      Table #{tableInfo?.tableNo || '1'} Order Ready
+                    </p>
+                    <p className="text-[10px] text-emerald-300 font-semibold truncate leading-tight mt-0.5">
+                      ₹{cartTotal.toFixed(0)} • {cart.map(c => `${c.quantity}x ${c.name}`).join(', ')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => {
+                      setIsLeftAiChatOpen(false);
+                      router.push('/cart');
+                    }}
+                    className="px-2 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold transition-colors"
+                    title="View Cart Details"
+                  >
+                    Cart
+                  </button>
+
+                  <button
+                    onClick={handlePlaceOrderFromChat}
+                    disabled={isPlacingOrder}
+                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-900 font-extrabold text-[11px] flex items-center gap-1 shadow-gold transition-all transform active:scale-95 disabled:opacity-50"
+                  >
+                    {isPlacingOrder ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin text-slate-900" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-3 h-3 fill-slate-900" />
+                        <span>Place Order</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Persistent Quick Prompt Bar */}
+            <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-200/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-shrink-0">
+              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider flex-shrink-0">
                 <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
                 Ask:
               </span>
-              {currentQuestions.map((q, i) => (
+              {[
+                "🏏 What is the live cricket match score and equation right now?",
+                "🍟 Order Peri-Peri Fries for our table",
+                "☕ What is your best-selling artisan coffee?",
+                "🍰 Suggest a decadent dessert for our table"
+              ].map((prompt, i) => (
                 <button
                   key={i}
-                  onClick={() => handleSendMessage(q.text)}
-                  disabled={isLoading}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 text-slate-700 border border-slate-200 transition-colors whitespace-nowrap flex-shrink-0 flex items-center gap-1"
+                  onClick={() => handleSendMessage(prompt)}
+                  className="px-2.5 py-1 rounded-xl text-[11px] font-medium bg-white hover:bg-purple-50 hover:border-purple-300 text-slate-700 border border-slate-200 transition-colors whitespace-nowrap flex-shrink-0"
                 >
-                  <span>{q.icon}</span>
-                  <span>{q.text}</span>
+                  {prompt}
                 </button>
               ))}
             </div>
@@ -846,7 +1174,7 @@ export default function LeftAiChatDrawer() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder={`Ask AI Mitra about ${selectedQuestionTopic.toLowerCase()}, scores, menu...`}
+                placeholder="Ask AI Mitra about cricket, scores, menu, order dishes..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isLoading}
@@ -866,188 +1194,133 @@ export default function LeftAiChatDrawer() {
         )}
 
         {/* =========================================================================
-            TAB: CRICKET FEED (Live Match Scoreboard & News)
+            TAB: CRICKET FEED (LIVE STADIUM SCORECARD & NEWS)
         ========================================================================= */}
         {activeTab === 'Cricket' && (
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/60 no-scrollbar">
-            {/* Live Stadium Match Scorecard Card */}
-            <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white border border-blue-500/30 shadow-md flex flex-col gap-3 relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200">
-                    Live Stadium Match Scoreboard
-                  </span>
-                </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  3rd T20I • Live Feed
+            {/* Live Match Stadium Scorecard Banner */}
+            <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white border border-blue-500/30 shadow-md">
+              <div className="flex items-center justify-between mb-2">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  Live Match • 3rd T20I
+                </span>
+                <span className="text-[10px] font-semibold text-blue-200 bg-blue-900/60 px-2 py-0.5 rounded-full border border-blue-400/30">
+                  Eden Gardens
                 </span>
               </div>
 
-              {/* Match Score Overview */}
-              <div className="flex items-center justify-between border-b border-blue-800/40 pb-2.5">
+              <div className="flex items-center justify-between py-2 border-y border-blue-800/40">
                 <div>
-                  <h3 className="text-base font-black text-white tracking-wide">
-                    IND vs AUS
-                  </h3>
-                  <p className="text-xs text-blue-200/90 font-semibold mt-0.5">
-                    IND 188/4 (18.2 ov) • Need 14 runs in 10 balls
-                  </p>
+                  <p className="text-xs font-bold text-slate-300">India (Target: 202)</p>
+                  <h4 className="text-xl font-black text-white tracking-tight">188/4</h4>
+                  <p className="text-[10px] text-emerald-400 font-semibold">18.2 Overs • CRR: 10.25</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-emerald-400 font-mono">
-                    CRR: 10.25
-                  </span>
-                  <p className="text-[10px] text-blue-300 font-semibold">Target: 202</p>
+                  <p className="text-xs font-bold text-slate-300">Australia</p>
+                  <h4 className="text-lg font-bold text-slate-300">201/6 (20 ov)</h4>
+                  <p className="text-[10px] text-amber-300 font-bold">Need 14 from 10 balls</p>
                 </div>
               </div>
 
-              {/* Batting & Bowling Stats */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-blue-900/40 p-2.5 rounded-xl border border-blue-700/30">
-                  <p className="text-[10px] text-amber-300 font-bold uppercase tracking-wider">🏏 Batting</p>
-                  <p className="font-bold text-white truncate mt-1">S. Gill 68* (40)</p>
-                  <p className="font-bold text-white truncate">H. Pandya 32* (16)</p>
+              <div className="mt-3 flex items-center justify-between text-xs text-blue-200/90">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-white">S. Gill 68* (41)</span>
+                  <span>•</span>
+                  <span className="font-semibold text-white">H. Pandya 32* (14)</span>
                 </div>
-                <div className="bg-blue-900/40 p-2.5 rounded-xl border border-blue-700/30">
-                  <p className="text-[10px] text-amber-300 font-bold uppercase tracking-wider">⚾ Bowling</p>
-                  <p className="font-bold text-white truncate mt-1">P. Cummins</p>
-                  <p className="text-[11px] text-blue-200 font-mono">3.2-0-32-1</p>
-                </div>
-              </div>
-
-              {/* Toggle Live Stadium Feed */}
-              <div className="pt-1 flex items-center justify-between border-t border-blue-800/40">
                 <button
                   onClick={() => setShowCricketIframe(!showCricketIframe)}
-                  className="text-xs font-bold text-amber-300 hover:text-amber-200 flex items-center gap-1 transition-colors"
+                  className="text-[11px] font-bold text-amber-300 hover:text-white underline flex items-center gap-1"
                 >
-                  <span>{showCricketIframe ? 'Hide Real-Time Stadium Widget' : 'View Real-Time Stadium Scoreboard'}</span>
-                  {showCricketIframe ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setCricketRefreshKey(k => k + 1);
-                    fetchNewsForTopic('Cricket', true);
-                    showToast('Cricket scores & news refreshed! 🏏', 'info');
-                  }}
-                  className="p-1.5 rounded-lg bg-blue-800/50 hover:bg-blue-700/50 text-blue-200 transition-colors"
-                  title="Refresh Scores"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  {showCricketIframe ? 'Hide Widget' : 'View Full Scoreboard'}
                 </button>
               </div>
 
+              {/* Collapsible Live Stadium Widget Iframe */}
               {showCricketIframe && (
-                <div className="w-full h-80 rounded-2xl overflow-hidden border border-blue-700/50 bg-white mt-1">
-                  <iframe
-                    key={cricketRefreshKey}
-                    src="https://widget.crictimes.org/"
-                    className="w-full h-full border-0"
-                    title="Live Cricket Stadium Feed"
-                  />
+                <div className="mt-3 pt-3 border-t border-blue-800/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                      CricTimes Live Stadium Widget
+                    </span>
+                    <button
+                      onClick={() => setCricketRefreshKey(k => k + 1)}
+                      className="p-1 rounded-md hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                      title="Refresh score"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="w-full h-[220px] rounded-2xl overflow-hidden bg-slate-950 border border-blue-500/30">
+                    <iframe
+                      key={cricketRefreshKey}
+                      src="https://widget.crictimes.org/"
+                      style={{ width: '100%', height: '100%', border: 'none' }}
+                      title="Live Cricket Stadium Feed"
+                    />
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Trending Cricket News Headlines */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5">
+            {/* AI Cricket Headlines & Match News */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Trophy className="w-4 h-4 text-amber-600" />
-                  <h3 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                    Trending Cricket Headlines
-                  </h3>
-                </div>
-
+                  Trending Cricket Headlines
+                </h4>
                 <button
                   onClick={() => fetchNewsForTopic('Cricket', true)}
-                  disabled={isLoadingTopicNews['Cricket']}
-                  className="flex items-center gap-1 text-[11px] text-blue-600 font-semibold hover:text-blue-800 transition-colors"
+                  disabled={isLoadingTopicNews.Cricket}
+                  className="text-[11px] text-blue-700 hover:underline flex items-center gap-1 font-semibold"
                 >
-                  <RefreshCw className={`w-3 h-3 ${isLoadingTopicNews['Cricket'] ? 'animate-spin' : ''}`} />
-                  <span>Refresh</span>
+                  <RefreshCw className={`w-3 h-3 ${isLoadingTopicNews.Cricket ? 'animate-spin' : ''}`} />
+                  Refresh
                 </button>
               </div>
 
-              {isLoadingTopicNews['Cricket'] && (!topicNewsMap['Cricket'] || topicNewsMap['Cricket'].length === 0) ? (
-                <div className="p-6 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                  <span>Curating live cricket headlines with Gemini...</span>
+              {isLoadingTopicNews.Cricket ? (
+                <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
+                  <p className="text-xs text-slate-500">Curating cricket updates...</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {(topicNewsMap['Cricket'] || []).map((item, index) => (
+                  {(topicNewsMap.Cricket || []).map((item, idx) => (
                     <div
-                      key={index}
-                      className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-xs transition-all flex flex-col gap-2"
+                      key={idx}
+                      className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-300 transition-all flex flex-col gap-2 group"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                          item.category === 'Match Update' 
-                            ? 'bg-blue-100 text-blue-700' 
-                            : item.category === 'Record'
-                            ? 'bg-amber-100 text-amber-800'
-                            : item.category === 'Analysis'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                           {item.category}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
-                          {item.time}
-                        </span>
+                        <span className="text-slate-600 font-medium">{item.time}</span>
                       </div>
 
-                      <h4 className="font-bold text-xs text-slate-900 leading-snug">
+                      <h5 className="font-bold text-xs text-slate-900 group-hover:text-blue-700 transition-colors leading-snug">
                         {item.title}
-                      </h4>
+                      </h5>
 
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                      <p className="text-[11px] text-slate-700 leading-relaxed">
                         {item.summary}
                       </p>
 
-                      <div className="pt-1 flex justify-end">
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                         <button
                           onClick={() => handleAskAboutNews(item, 'Cricket')}
-                          className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+                          className="text-[11px] font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
                         >
-                          <MessageSquare className="w-3 h-3" />
-                          <span>Ask AI Mitra about this</span>
+                          <span>Ask AI Mitra & Order Snacks</span>
+                          <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Cricket Discussion & Snack Prompts */}
-            <div className="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-100 flex flex-col gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-900 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-blue-600" />
-                Match Matchmaker Prompts
-              </span>
-              <p className="text-[11px] text-blue-900/80 leading-relaxed">
-                Cheer with table pairings and cricket banter:
-              </p>
-              <div className="flex flex-col gap-1.5 mt-1">
-                {[
-                  '🏏 Who holds the fastest century in T20 cricket history?',
-                  '🍟 What spicy snacks go best with a last-over chase?',
-                  '🏆 Predict today\'s match winner with AI Mitra!'
-                ].map((prompt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleAskPrompt(prompt)}
-                    className="text-left text-[11px] font-medium p-2 rounded-xl bg-white hover:bg-blue-100/70 border border-blue-200/60 text-blue-900 transition-all flex items-center justify-between"
-                  >
-                    <span>{prompt}</span>
-                    <ArrowRight className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         )}
@@ -1149,7 +1422,7 @@ export default function LeftAiChatDrawer() {
                     {isMuted || volume === 0 ? (
                       <VolumeX className="w-3.5 h-3.5 text-rose-300" />
                     ) : (
-                      <Volume2 className="w-3.5 h-3.5" />
+                      <Volume2 className="w-3.5 h-3.5 text-purple-200" />
                     )}
                   </button>
                   <input
@@ -1158,97 +1431,66 @@ export default function LeftAiChatDrawer() {
                     max="100"
                     value={isMuted ? 0 : volume}
                     onChange={(e) => {
-                      setVolume(Number(e.target.value));
+                      setVolume(parseInt(e.target.value));
                       if (isMuted) setIsMuted(false);
                     }}
-                    className="w-16 accent-amber-400 h-1 bg-purple-900 rounded-lg cursor-pointer"
+                    className="w-16 h-1 bg-purple-800/80 rounded-lg appearance-none cursor-pointer accent-amber-400"
                   />
                 </div>
               </div>
-
-              {/* Station Quick Switchers */}
-              <div className="flex gap-1.5 mt-3 pt-2 overflow-x-auto no-scrollbar">
-                {RADIO_STREAMS.map((station, idx) => (
-                  <button
-                    key={station.id}
-                    onClick={() => handleSelectTrack(idx)}
-                    className={`px-2.5 py-1 rounded-xl text-[10px] font-semibold flex items-center gap-1 transition-all flex-shrink-0 ${
-                      currentTrackIndex === idx
-                        ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
-                        : 'bg-purple-950/60 text-purple-300 border border-purple-800/40 hover:bg-purple-900/60'
-                    }`}
-                  >
-                    <span>{station.cover}</span>
-                    <span>{station.genre}</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
-            {/* Trending Music News Section */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5">
-                  <Newspaper className="w-4 h-4 text-purple-600" />
-                  <h3 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                    Trending Music News
-                  </h3>
-                </div>
-
+            {/* Trending Music News */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Headphones className="w-4 h-4 text-purple-600" />
+                  Trending Music & Café Beats
+                </h4>
                 <button
                   onClick={() => fetchNewsForTopic('Music', true)}
-                  disabled={isLoadingTopicNews['Music']}
-                  className="flex items-center gap-1 text-[11px] text-purple-600 font-semibold hover:text-purple-800 transition-colors"
+                  disabled={isLoadingTopicNews.Music}
+                  className="text-[11px] text-purple-700 hover:underline flex items-center gap-1 font-semibold"
                 >
-                  <RefreshCw className={`w-3 h-3 ${isLoadingTopicNews['Music'] ? 'animate-spin' : ''}`} />
-                  <span>Refresh</span>
+                  <RefreshCw className={`w-3 h-3 ${isLoadingTopicNews.Music ? 'animate-spin' : ''}`} />
+                  Refresh
                 </button>
               </div>
 
-              {isLoadingTopicNews['Music'] && (!topicNewsMap['Music'] || topicNewsMap['Music'].length === 0) ? (
-                <div className="p-6 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
-                  <span>Curating latest music headlines with Gemini...</span>
+              {isLoadingTopicNews.Music ? (
+                <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-600 mx-auto mb-2" />
+                  <p className="text-xs text-slate-500">Tuning radio frequencies & news...</p>
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {(topicNewsMap['Music'] || []).map((item, index) => (
+                  {(topicNewsMap.Music || []).map((item, idx) => (
                     <div
-                      key={index}
-                      className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-purple-300 hover:shadow-xs transition-all flex flex-col gap-2"
+                      key={idx}
+                      className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-purple-300 transition-all flex flex-col gap-2 group"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                          item.category === 'Trending' 
-                            ? 'bg-purple-100 text-purple-700' 
-                            : item.category === 'Live'
-                            ? 'bg-rose-100 text-rose-700'
-                            : item.category === 'Awards'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
                           {item.category}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
-                          {item.time}
-                        </span>
+                        <span className="text-slate-600 font-medium">{item.time}</span>
                       </div>
 
-                      <h4 className="font-bold text-xs text-slate-900 leading-snug">
+                      <h5 className="font-bold text-xs text-slate-900 group-hover:text-purple-700 transition-colors leading-snug">
                         {item.title}
-                      </h4>
+                      </h5>
 
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                      <p className="text-[11px] text-slate-700 leading-relaxed">
                         {item.summary}
                       </p>
 
-                      <div className="pt-1 flex justify-end">
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                         <button
                           onClick={() => handleAskAboutNews(item, 'Music')}
-                          className="text-[11px] font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 transition-colors"
+                          className="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
                         >
-                          <MessageSquare className="w-3 h-3" />
-                          <span>Ask AI Mitra about this</span>
+                          <span>Ask AI Mitra & Order Pairings</span>
+                          <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -1260,76 +1502,59 @@ export default function LeftAiChatDrawer() {
         )}
 
         {/* =========================================================================
-            GENERIC TOPIC VIEW: NEWS / MOVIES / GAMES / SHORT VIDEOS
+            GENERIC TOPIC TABS: News, Movies, Games, Short Videos
         ========================================================================= */}
-        {activeTab !== 'Cricket' && activeTab !== 'Music' && activeTab !== 'chat' && (
+        {activeTab !== 'chat' && activeTab !== 'Cricket' && activeTab !== 'Music' && (
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/60 no-scrollbar">
-            {/* Topic Header Card */}
-            <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-500/30 shadow-md flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-xl shadow-inner">
-                  {getTopicIcon(activeTab)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-white tracking-wide">
-                      {activeTab} Headlines
-                    </h3>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  </div>
-                  <p className="text-xs text-indigo-200/80">
-                    Live AI-curated {activeTab.toLowerCase()} updates for your table
-                  </p>
-                </div>
-              </div>
-
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                {getTopicIcon(activeTab)}
+                Latest {activeTab} Feed
+              </h4>
               <button
                 onClick={() => fetchNewsForTopic(activeTab, true)}
                 disabled={isLoadingTopicNews[activeTab]}
-                className="p-2 rounded-xl bg-indigo-800/40 hover:bg-indigo-700/40 text-indigo-200 transition-colors"
-                title="Refresh Topic News"
+                className="text-[11px] text-purple-700 hover:underline flex items-center gap-1 font-semibold"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoadingTopicNews[activeTab] ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3 h-3 ${isLoadingTopicNews[activeTab] ? 'animate-spin' : ''}`} />
+                Refresh
               </button>
             </div>
 
-            {/* News Articles List */}
-            {isLoadingTopicNews[activeTab] && (!topicNewsMap[activeTab] || topicNewsMap[activeTab].length === 0) ? (
-              <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200 flex flex-col items-center justify-center gap-2">
-                <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
-                <span>Loading latest {activeTab.toLowerCase()} headlines...</span>
+            {isLoadingTopicNews[activeTab] ? (
+              <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-600 mx-auto mb-2" />
+                <p className="text-xs text-slate-500">Gathering {activeTab} updates...</p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {(topicNewsMap[activeTab] || []).map((item, index) => (
+                {(topicNewsMap[activeTab] || []).map((item, idx) => (
                   <div
-                    key={index}
-                    className="p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-300 hover:shadow-xs transition-all flex flex-col gap-2"
+                    key={idx}
+                    className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-purple-300 transition-all flex flex-col gap-2 group"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-700">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
                         {item.category}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {item.time}
-                      </span>
+                      <span className="text-slate-600 font-medium">{item.time}</span>
                     </div>
 
-                    <h4 className="font-bold text-xs text-slate-900 leading-snug">
+                    <h5 className="font-bold text-xs text-slate-900 group-hover:text-purple-700 transition-colors leading-snug">
                       {item.title}
-                    </h4>
+                    </h5>
 
-                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                    <p className="text-[11px] text-slate-700 leading-relaxed">
                       {item.summary}
                     </p>
 
-                    <div className="pt-1 flex justify-end">
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                       <button
                         onClick={() => handleAskAboutNews(item, activeTab)}
-                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                        className="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
                       >
-                        <MessageSquare className="w-3 h-3" />
-                        <span>Ask AI Mitra about this</span>
+                        <span>Ask AI Mitra & Order Pairings</span>
+                        <ArrowRight className="w-3 h-3" />
                       </button>
                     </div>
                   </div>

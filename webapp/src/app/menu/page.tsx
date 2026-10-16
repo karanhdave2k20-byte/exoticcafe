@@ -30,13 +30,11 @@ export default function MenuPage() {
   const primaryInterest = activeInterests[0] || '';
 
   React.useEffect(() => {
+    // Ensure AI Mitra chat drawer starts closed so guests see the full menu screen properly
+    setIsLeftAiChatOpen(false);
     if (typeof window !== 'undefined') {
-      const topicToOpen = sessionStorage.getItem('th_auto_open_mitra_topic') || sessionStorage.getItem('th_auto_open_music_mitra');
-      if (topicToOpen) {
-        sessionStorage.removeItem('th_auto_open_mitra_topic');
-        sessionStorage.removeItem('th_auto_open_music_mitra');
-        setIsLeftAiChatOpen(true);
-      }
+      sessionStorage.removeItem('th_auto_open_mitra_topic');
+      sessionStorage.removeItem('th_auto_open_music_mitra');
     }
   }, [setIsLeftAiChatOpen]);
 

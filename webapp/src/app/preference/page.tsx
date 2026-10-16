@@ -41,11 +41,8 @@ export default function PreferencePage() {
     }
 
     if (typeof window !== 'undefined') {
-      if (selectedInterests.length > 0) {
-        sessionStorage.setItem('th_auto_open_mitra_topic', selectedInterests[0]);
-      } else {
-        sessionStorage.removeItem('th_auto_open_mitra_topic');
-      }
+      sessionStorage.removeItem('th_auto_open_mitra_topic');
+      sessionStorage.removeItem('th_auto_open_music_mitra');
     }
 
     await setSessionInterests(selectedInterests);
