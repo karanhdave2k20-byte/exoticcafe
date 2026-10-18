@@ -653,16 +653,16 @@ export default function LeftAiChatDrawer() {
         }}
       />
 
-      {/* Universal Backdrop for clean focused drawer overlay across all screen sizes */}
+      {/* Mobile Backdrop only (hidden on desktop so left AI Mitra and right Menu display together seamlessly) */}
       <div 
         onClick={() => setIsLeftAiChatOpen(false)}
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 transition-opacity animate-fade-in"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden transition-opacity animate-fade-in"
         aria-hidden="true"
       />
 
-      {/* Left Chat Docked Drawer */}
+      {/* Left AI Mitra Docked Panel (Left Side) */}
       <aside 
-        className="fixed top-0 lg:top-[61px] bottom-0 left-0 z-50 w-full sm:w-[460px] flex flex-col bg-white border-r border-slate-200/90 shadow-2xl transition-all duration-300 ease-in-out h-[100dvh] lg:h-[calc(100dvh-61px)] animate-slide-right"
+        className="fixed top-0 lg:top-[65px] bottom-0 left-0 lg:left-16 z-30 w-full sm:w-[410px] xl:w-[430px] flex flex-col bg-white border-r border-slate-200/90 shadow-xl lg:shadow-xs transition-all duration-300 ease-in-out h-[100dvh] lg:h-[calc(100dvh-65px)]"
         role="dialog"
         aria-label="AI Mitra Chat"
       >

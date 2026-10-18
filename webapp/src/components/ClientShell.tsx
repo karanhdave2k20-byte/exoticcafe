@@ -31,10 +31,14 @@ export default function ClientShell({ children }: { children: ReactNode }) {
       {/* Interactive Left-sliding AI Chat Drawer */}
       <LeftAiChatDrawer />
 
-      {/* Main Content Area: properly sized and never squished into split screen */}
+      {/* Main Content Area: dynamically offsets on desktop when AI Mitra is open side-by-side */}
       <main 
         className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 transition-all duration-300 ease-in-out ${
-          isEnteringFlow ? 'max-w-5xl' : 'lg:pl-20 max-w-7xl'
+          isEnteringFlow 
+            ? 'max-w-5xl' 
+            : isLeftAiChatOpen 
+              ? 'lg:pl-[490px] xl:pl-[510px] max-w-[1920px]' 
+              : 'lg:pl-20 max-w-7xl'
         }`}
       >
         {children}

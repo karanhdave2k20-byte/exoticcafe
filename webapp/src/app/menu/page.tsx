@@ -30,8 +30,10 @@ export default function MenuPage() {
   const primaryInterest = activeInterests[0] || '';
 
   React.useEffect(() => {
-    // Ensure AI Mitra chat drawer starts closed so guests see the full menu screen properly
-    setIsLeftAiChatOpen(false);
+    // On desktop screens, open AI Mitra by default so user gets the perfect side-by-side view (Left: AI Mitra, Right: Menu)!
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setIsLeftAiChatOpen(true);
+    }
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('th_auto_open_mitra_topic');
       sessionStorage.removeItem('th_auto_open_music_mitra');
@@ -457,7 +459,7 @@ export default function MenuPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredMenu.map(dish => {
             const quantity = getItemQuantity(dish.id);
             const isFav = favorites.includes(dish.id);

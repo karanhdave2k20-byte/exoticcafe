@@ -86,7 +86,7 @@ export default function LeftNavigator() {
       )}
 
       {/* 2. Desktop Left Navigation Rail (Persistent sleek sidebar on lg+ screens) */}
-      <aside className="hidden lg:flex fixed left-0 top-[65px] bottom-0 z-30 w-16 hover:w-56 bg-white/80 hover:bg-white backdrop-blur-xl border-r border-slate-200/90 flex-col justify-between py-4 transition-all duration-300 ease-in-out shadow-sm group overflow-hidden">
+      <aside className={`hidden lg:flex fixed left-0 top-[65px] bottom-0 z-30 w-16 ${isLeftAiChatOpen ? 'w-16' : 'hover:w-56'} bg-white/80 hover:bg-white backdrop-blur-xl border-r border-slate-200/90 flex-col justify-between py-4 transition-all duration-300 ease-in-out shadow-sm group overflow-hidden`}>
         {/* Top: AI Chat Primary Feature Button */}
         <div className="px-2 space-y-3">
           <button
