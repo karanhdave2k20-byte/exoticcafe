@@ -40,7 +40,7 @@ export default function ThankYouPage() {
           Thank You, {user?.n || user?.name || 'Friend'}!
         </h1>
         <p className="text-xs text-muted mt-2 leading-relaxed max-w-xs mx-auto">
-          We hope you had a memorable culinary journey with us at Exotic Café. Your presence makes our café vibrant.
+          We hope you had a memorable culinary journey with us at TableHive. Your presence makes our dining experience vibrant.
         </p>
       </div>
 

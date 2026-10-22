@@ -209,7 +209,7 @@ export default function HomePage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-caramel-50 border border-caramel-200/80 text-caramel-800 text-[11px] font-bold tracking-wider uppercase mb-1.5 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-caramel-600" />
-            <span>Table Hive • Single Table Collaborative Dining</span>
+            <span>TableHive • Single Table Collaborative Dining</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-serif font-black text-roast-900 tracking-tight">
             Table QR System

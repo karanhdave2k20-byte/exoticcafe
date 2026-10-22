@@ -30,7 +30,7 @@ export default function Game2048Page() {
     256: 'Affogato 🍨',
     512: 'Cold Brew 🧊',
     1024: 'Irish Gold 🏆',
-    2048: 'Exotic Master 👑',
+    2048: 'Hive Master 👑',
   };
 
   const spawnTile = (currentBoard: Board): Board => {

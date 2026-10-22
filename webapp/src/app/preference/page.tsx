@@ -12,7 +12,7 @@ import BackButton from '../../components/BackButton';
 
 export default function PreferencePage() {
   const router = useRouter();
-  const { tableInfo, setSessionInterests, showToast } = useStore();
+  const { tableInfo, setSessionInterests, showToast, setIsLeftAiChatOpen } = useStore();
 
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
@@ -43,10 +43,14 @@ export default function PreferencePage() {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('th_auto_open_mitra_topic');
       sessionStorage.removeItem('th_auto_open_music_mitra');
+      // Store selected interests in sessionStorage for immediate access in AI Mitra drawer
+      sessionStorage.setItem('th_pending_interests', JSON.stringify(selectedInterests));
     }
 
     await setSessionInterests(selectedInterests);
     showToast('Entertainment preferences saved! Opening menu... 🍽️', 'success');
+    // Auto-open AI Mitra on menu so it immediately shows personalized suggestions
+    setIsLeftAiChatOpen(true);
     router.push('/menu');
   };
 

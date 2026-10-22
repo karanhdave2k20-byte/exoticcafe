@@ -28,7 +28,7 @@ export default function AITalkPage() {
         setMessages([
           {
             role: 'model',
-            text: 'Hello! I am your Exotic AI Mitra. Ask me anything about coffee roasts, pastry pairings, our secret menu, or even a fun coffee fact while you dine!',
+            text: 'Hello! I am your TableHive AI Mitra. Ask me anything about coffee roasts, dish pairings, our secret menu, or even a fun food fact while you dine!',
           },
         ]);
       }
@@ -111,7 +111,7 @@ export default function AITalkPage() {
             </div>
             <div>
               <h2 className="font-serif font-bold text-base text-roast-900 leading-none">
-                Exotic AI Mitra
+                TableHive AI Mitra
               </h2>
               <span className="text-[10px] text-emerald-600 flex items-center gap-1 font-semibold mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />

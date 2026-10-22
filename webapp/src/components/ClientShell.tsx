@@ -16,7 +16,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   
   // During table scan and onboarding steps, do not show Left Navigator rail
-  const isEnteringFlow = pathname === '/' || pathname === '/login' || pathname === '/people' || pathname === '/preference' || (pathname.startsWith('/table/') && !currentSession && !user);
+  const isEnteringFlow = pathname === '/' || pathname === '/login' || pathname === '/people' || pathname === '/preference' || pathname === '/invite' || pathname.startsWith('/table/');
 
   // Hide the FAB if we are on the full AI chat page, or if left AI chat is open, or during onboarding
   const showFAB = pathname !== '/fun/ai-talk' && !isLeftAiChatOpen && !isEnteringFlow;

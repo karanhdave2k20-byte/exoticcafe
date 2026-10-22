@@ -4,7 +4,7 @@ import { StoreProvider } from '../context/StoreContext';
 import ClientShell from '../components/ClientShell';
 
 export const metadata: Metadata = {
-  title: 'TableHive | Exotic Café Collaborative Social Dining',
+  title: 'TableHive | Social Dining & Café',
   description: 'A premium, real-time social dining and café experience. Scan your table QR, order together, split bills, and enjoy live entertainment.',
   icons: {
     icon: '/tablehive_logo.jpg',

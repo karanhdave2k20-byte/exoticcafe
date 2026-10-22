@@ -29,8 +29,8 @@ export default function CartPage() {
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = promoInput.trim().toUpperCase();
-    if (clean === 'HIVE10' || clean === 'EXOTIC20') {
-      const discountVal = clean === 'EXOTIC20' ? 20 : 10;
+    if (clean === 'HIVE10' || clean === 'HIVE20') {
+      const discountVal = clean === 'HIVE20' ? 20 : 10;
       setDiscountPercent(discountVal);
       setAppliedPromo(clean);
       setPromoInput('');
@@ -38,7 +38,7 @@ export default function CartPage() {
     } else {
       setDiscountPercent(0);
       setAppliedPromo('');
-      showToast('Invalid coupon. Try "HIVE10" or "EXOTIC20".', 'error');
+      showToast('Invalid coupon. Try "HIVE10" or "HIVE20".', 'error');
     }
   };
 

@@ -12,26 +12,48 @@ import {
   CheckCircle2, Clock
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { MenuItem } from '../types';
 
 interface ChatMessage {
   role: 'user' | 'model' | 'ai';
   text: string;
   followUps?: string[];
-  orderConfirmation?: {
-    orderId: string;
-    tableNo: string;
-    itemsCount: number;
-    totalAmount: string;
+}
+
+
+interface LiveCricketMatch {
+  id: number;
+  series: string;
+  desc: string;
+  format: string;
+  state: string;
+  status: string;
+  shortStatus: string;
+  isLive: boolean;
+  team1: {
+    id?: number;
+    name: string;
+    shortName: string;
+    score: string;
+    overs: string;
+    fullScore: string;
   };
-  orderPromptDish?: MenuItem;
-  orderTrackPrompt?: boolean;
+  team2: {
+    id?: number;
+    name: string;
+    shortName: string;
+    score: string;
+    overs: string;
+    fullScore: string;
+  };
+  venue: string;
 }
 
 interface TopicNewsItem {
   title: string;
   summary: string;
   category: string;
+  industry?: string;
+  source?: string;
   time: string;
 }
 
@@ -50,13 +72,144 @@ interface SelectableQuestion {
   category: string;
 }
 
-const STORAGE_KEY = 'tablehive_ai_chat_history';
+// Chat storage key is now table-specific to isolate per-table conversations
+const getChatStorageKey = (tableNo: string | null) => `tablehive_chat_table_${tableNo || 'guest'}`;
 
 const RADIO_STREAMS: RadioTrack[] = [
   { id: 'lofi', title: 'Chill Lounge & Lo-Fi', artist: 'I Love Radio', genre: 'Lo-Fi Chill', cover: '☕', url: 'https://streams.ilovemusic.de/iloveradio17.mp3' },
   { id: 'ambient', title: 'Ambient Rain & Chill', artist: 'SomaFM DefCon', genre: 'Ambient Chill', cover: '🌧️', url: 'https://ice1.somafm.com/defcon-128-mp3' },
   { id: 'acoustic', title: 'Acoustic Morning Blend', artist: 'Chillout Lounge', genre: 'Acoustic Blend', cover: '🥐', url: 'https://streams.ilovemusic.de/iloveradio14.mp3' },
   { id: 'space', title: 'Deep Space Downtempo', artist: 'SomaFM Space Station', genre: 'Ambient Chill', cover: '✨', url: 'https://ice1.somafm.com/spacestation-128-mp3' },
+];
+
+interface MovieClip {
+  id: string;
+  title: string;
+  year: string;
+  industry: 'Bollywood' | 'South' | 'Hollywood';
+  industryLabel: string;
+  genre: string;
+  director: string;
+  cast: string;
+  youtubeId: string;
+  aiHighlight: string;
+  suggestedSnack: string;
+  trivia: string;
+}
+
+const MOVIE_CLIPS: MovieClip[] = [
+  {
+    id: 'pushpa2',
+    title: 'Pushpa 2: The Rule',
+    year: '2024–2025',
+    industry: 'South',
+    industryLabel: 'Tollywood',
+    genre: 'Pan-India Action Thriller',
+    director: 'Sukumar',
+    cast: 'Allu Arjun, Rashmika Mandanna, Fahadh Faasil',
+    youtubeId: 'g3JUbgHiXvQ',
+    aiHighlight: "Allu Arjun returns with iconic swagger and mass intensity as Pushpa Raj rules the nation.",
+    suggestedSnack: "Spicy Chipotle Veg Burger & Peri-Peri Fries",
+    trivia: "The mass trailer shattered all-time Indian digital records with over 100M+ views in 24 hours."
+  },
+  {
+    id: 'stree2',
+    title: 'Stree 2: Sarkate Ka Aatank',
+    year: '2024',
+    industry: 'Bollywood',
+    industryLabel: 'Bollywood',
+    genre: 'Horror Comedy Blockbuster',
+    director: 'Amar Kaushik',
+    cast: 'Shraddha Kapoor, Rajkummar Rao, Pankaj Tripathi',
+    youtubeId: 'KVnhePfPxmA',
+    aiHighlight: "Chanderi faces Sarkata in India's highest-grossing Hindi movie of all time.",
+    suggestedSnack: "Crispy Peri-Peri Fries & Dark Chocolate Brownie",
+    trivia: "Stree 2 crossed ₹600 Crore net at the Indian box office, setting the all-time biggest Hindi cinema milestone."
+  },
+  {
+    id: 'deadpool',
+    title: 'Deadpool & Wolverine',
+    year: '2024',
+    industry: 'Hollywood',
+    industryLabel: 'Hollywood',
+    genre: 'Marvel Multiverse Action Comedy',
+    director: 'Shawn Levy',
+    cast: 'Ryan Reynolds, Hugh Jackman, Emma Corrin',
+    youtubeId: '73_1biulkYk',
+    aiHighlight: "The Merc with a Mouth teams up with Wolverine in Marvel's R-rated multiversal epic.",
+    suggestedSnack: "Loaded Nachos Supreme & Iced Americano",
+    trivia: "Grossed over $1.33 Billion worldwide, becoming the highest-grossing R-rated film in cinematic history."
+  },
+  {
+    id: 'kalki',
+    title: 'Kalki 2898 AD',
+    year: '2024',
+    industry: 'South',
+    industryLabel: 'Tollywood',
+    genre: 'Mythological Sci-Fi Epic',
+    director: 'Nag Ashwin',
+    cast: 'Prabhas, Amitabh Bachchan, Deepika Padukone, Kamal Haasan',
+    youtubeId: 'kQDd1AhGIHk',
+    aiHighlight: "A futuristic dystopian sci-fi blended with Mahabharata mythology and stunning visual effects.",
+    suggestedSnack: "Truffle Margherita Pizza & Golden Crema Cappuccino",
+    trivia: "Amitabh Bachchan performed intense stunt sequences at age 81 as the immortal warrior Ashwatthama."
+  },
+  {
+    id: 'dune2',
+    title: 'Dune: Part Two',
+    year: '2024',
+    industry: 'Hollywood',
+    industryLabel: 'Hollywood',
+    genre: 'Sci-Fi Visual Masterpiece',
+    director: 'Denis Villeneuve',
+    cast: 'Timothée Chalamet, Zendaya, Rebecca Ferguson, Austin Butler',
+    youtubeId: 'Way9Dexny3w',
+    aiHighlight: "Paul Atreides unites with Chani and the Fremen to wage revenge against the conspirators.",
+    suggestedSnack: "Toasted Hazelnut Latte & Artisan Crostini",
+    trivia: "Shot entirely using IMAX digital cameras, with legendary practical sets built across Abu Dhabi and Jordan."
+  },
+  {
+    id: 'singham',
+    title: 'Singham Again',
+    year: '2024',
+    industry: 'Bollywood',
+    industryLabel: 'Bollywood',
+    genre: 'Cop Universe Action',
+    director: 'Rohit Shetty',
+    cast: 'Ajay Devgn, Kareena Kapoor, Deepika Padukone, Ranveer Singh, Akshay Kumar',
+    youtubeId: 'V_UsmZfMupk',
+    aiHighlight: "Bajirao Singham leads the star-studded Cop Universe inspired by the epic Ramayana.",
+    suggestedSnack: "Double Brioche Crunch Burger & Salted Caramel Frappé",
+    trivia: "Brought together Ajay Devgn, Akshay Kumar, Ranveer Singh, and Salman Khan in high-octane cameos."
+  },
+  {
+    id: 'devara',
+    title: 'Devara: Part 1',
+    year: '2024',
+    industry: 'South',
+    industryLabel: 'Tollywood',
+    genre: 'High-Seas Action Drama',
+    director: 'Koratala Siva',
+    cast: 'Jr NTR, Saif Ali Khan, Janhvi Kapoor',
+    youtubeId: '4g_5Yd_g2oA',
+    aiHighlight: "Jr NTR dominates coastal seas with fierce action, backed by Anirudh Ravichander's thunderous score.",
+    suggestedSnack: "Paneer Tikka Crostini & Cold Brew Float",
+    trivia: "Features massive underwater battle choreographies with Anirudh's viral sensation songs."
+  },
+  {
+    id: 'gladiator2',
+    title: 'Gladiator II',
+    year: '2024',
+    industry: 'Hollywood',
+    industryLabel: 'Hollywood',
+    genre: 'Historical Action Epic',
+    director: 'Ridley Scott',
+    cast: 'Paul Mescal, Pedro Pascal, Denzel Washington',
+    youtubeId: '4rgYUipGJNo',
+    aiHighlight: "Lucius enters the Colosseum after Roman emperors conquer his home in an epic saga of vengeance and honor.",
+    suggestedSnack: "Charred Garlic Sourdough & Signature Cold Espresso",
+    trivia: "The long-awaited sequel to the 2000 Best Picture winner features a colossal flooded Colosseum naval battle."
+  }
 ];
 
 const TOPIC_QUESTIONS: Record<string, SelectableQuestion[]> = {
@@ -81,10 +234,11 @@ const TOPIC_QUESTIONS: Record<string, SelectableQuestion[]> = {
     { text: "What are the latest global farm-to-table culinary trends?", icon: "🍽️", category: "Culinary" },
   ],
   Movies: [
-    { text: "Which blockbuster movies and trailers are breaking records today?", icon: "🎬", category: "Box Office" },
-    { text: "What café snacks and desserts go best with movie discussions?", icon: "🍿", category: "Movie Pairing" },
-    { text: "Tell me about recent film festival winners and cinematic trivia", icon: "🏆", category: "Trivia" },
-    { text: "Recommend a cozy warm drink for talking about classic cinema", icon: "☕", category: "Beverage" },
+    { text: "What are today's top Bollywood, South & Hollywood box office records?", icon: "🎬", category: "Box Office" },
+    { text: "Tell me the latest news on Pushpa 2: The Rule, Stree 2 & Kalki 2!", icon: "🔥", category: "Blockbusters" },
+    { text: "What's the buzz on Christopher Nolan's next feature & Deadpool?", icon: "🍿", category: "Hollywood" },
+    { text: "Which café snacks pair best with action-packed thrillers?", icon: "🍟", category: "Movie Pairing" },
+    { text: "Tell me about upcoming Pan-India movies like Ramayana and Coolie", icon: "⭐", category: "Pan-India" },
   ],
   Games: [
     { text: "Challenge our table to a café trivia quiz or brain-teaser!", icon: "🎮", category: "Table Challenge" },
@@ -112,21 +266,36 @@ export default function LeftAiChatDrawer() {
     isLeftAiChatOpen, 
     setIsLeftAiChatOpen, 
     showToast, 
-    mockMenu, 
-    addToCart,
-    cart,
-    cartTotal,
-    placeOrder,
     tableInfo,
     currentSession
   } = useStore();
 
-  // Extract all table interests
+  // Extract all table interests — also check sessionStorage for immediate availability after interest selection
+  const [pendingInterests, setPendingInterests] = React.useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const pending = sessionStorage.getItem('th_pending_interests');
+        if (pending) return JSON.parse(pending);
+      } catch (e) {}
+    }
+    return [];
+  });
+
   const activeInterests: string[] = (tableInfo?.interests && tableInfo.interests.length > 0)
     ? tableInfo.interests
     : (currentSession?.interests && currentSession.interests.length > 0)
     ? currentSession.interests
-    : [];
+    : pendingInterests;
+
+  // Clear pending interests once tableInfo has them
+  React.useEffect(() => {
+    if (tableInfo?.interests && tableInfo.interests.length > 0 && pendingInterests.length > 0) {
+      setPendingInterests([]);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('th_pending_interests');
+      }
+    }
+  }, [tableInfo?.interests]);
 
   const primaryTopic = activeInterests[0] || 'Cricket';
 
@@ -138,8 +307,6 @@ export default function LeftAiChatDrawer() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [addedItemIds, setAddedItemIds] = useState<number[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -158,6 +325,41 @@ export default function LeftAiChatDrawer() {
   // Cricket Specific State
   const [showCricketIframe, setShowCricketIframe] = useState(false);
   const [cricketRefreshKey, setCricketRefreshKey] = useState(0);
+  const [cricketMatches, setCricketMatches] = useState<LiveCricketMatch[]>([]);
+  const [selectedCricketMatchIndex, setSelectedCricketMatchIndex] = useState<number>(0);
+  const [isLoadingCricket, setIsLoadingCricket] = useState<boolean>(false);
+
+  const activeCricketMatch = cricketMatches[selectedCricketMatchIndex] || cricketMatches[0] || null;
+
+  // Movies Cinema Lounge & AI Clips State
+  const [selectedMovieIndustry, setSelectedMovieIndustry] = useState<string>('All');
+  const [selectedMovieClipIndex, setSelectedMovieClipIndex] = useState<number>(0);
+  const [showMoviePlayer, setShowMoviePlayer] = useState<boolean>(true);
+  const activeMovieClip = MOVIE_CLIPS[selectedMovieClipIndex] || MOVIE_CLIPS[0];
+
+  // Poll Real-Time Live Cricket Data from Backend
+  const fetchLiveCricket = async () => {
+    try {
+      setIsLoadingCricket(true);
+      const res = await fetch('/api/cricket/live');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.matches && Array.isArray(data.matches) && data.matches.length > 0) {
+          setCricketMatches(data.matches);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch real live cricket scores:', e);
+    } finally {
+      setIsLoadingCricket(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveCricket();
+    const interval = setInterval(fetchLiveCricket, 20000);
+    return () => clearInterval(interval);
+  }, []);
 
   const currentTrack = RADIO_STREAMS[currentTrackIndex];
 
@@ -168,13 +370,47 @@ export default function LeftAiChatDrawer() {
     }
   }, [primaryTopic]);
 
+  // Auto-trigger first AI Mitra message based on selected interests
+  // When the drawer opens fresh (only welcome msg) with real interests, auto-send contextual prompt
+  const hasAutoTriggeredRef = React.useRef(false);
+  useEffect(() => {
+    if (!isLeftAiChatOpen) {
+      hasAutoTriggeredRef.current = false; // reset when drawer closes
+      return;
+    }
+    if (hasAutoTriggeredRef.current) return;
+    if (activeInterests.length === 0) return;
+    // Wait for welcome message to be the only message
+    if (messages.length !== 1) return;
+
+    hasAutoTriggeredRef.current = true;
+
+    const autoPrompts: Record<string, string> = {
+      Cricket: "What is the live cricket match score and equation right now?",
+      Movies: "What are today's top Bollywood, South & Hollywood box office records?",
+      Music: "Recommend the best coffee pairings for acoustic lo-fi vibes",
+      News: "What are today's top world, culinary & technology headlines?",
+      Games: "Challenge our table to a café trivia quiz or brain-teaser!",
+      'Short Videos': "What barista latte art techniques are currently going viral?",
+      Food: "What are today's top best-selling chef specials and recommendations?",
+    };
+
+    const autoPrompt = autoPrompts[primaryTopic] || autoPrompts['Food'];
+    if (autoPrompt) {
+      const timer = setTimeout(() => {
+        handleSendMessage(autoPrompt);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [isLeftAiChatOpen, messages.length, activeInterests.length, primaryTopic]);
+
   // Fetch Topic News
   const fetchNewsForTopic = async (topic: string, force = false) => {
     if (!force && topicNewsMap[topic] && topicNewsMap[topic].length > 0) return;
     
     setIsLoadingTopicNews(prev => ({ ...prev, [topic]: true }));
     try {
-      const res = await fetch(`/api/ai/topic-news?topic=${encodeURIComponent(topic)}`);
+      const res = await fetch(`/api/ai/topic-news?topic=${encodeURIComponent(topic)}${force ? '&force=true' : ''}`);
       if (res.ok) {
         const data = await res.json();
         if (data.news && Array.isArray(data.news)) {
@@ -199,41 +435,64 @@ export default function LeftAiChatDrawer() {
   const getWelcomeText = (topic: string) => {
     switch (topic) {
       case 'Cricket':
-        return `🏏 Welcome to Table ${tableInfo.tableNo || 'Hive'}! Since your table selected Cricket, I'm your live match companion! What would you like to know about today's match, live scores, and café pairings?`;
+        return `🏏 Welcome to Table ${tableInfo.tableNo || 'TableHive'}! Since your table selected Cricket, I'm your live match companion! What would you like to know about today's match, live scores, and café pairings?`;
       case 'Music':
-        return `🎵 Welcome to Table ${tableInfo.tableNo || 'Hive'}! Since your table selected Music, I've loaded our café's live Lo-Fi radio and today's trending music news for you! What music vibes or coffee pairings would you like to explore?`;
+        return `🎵 Welcome to Table ${tableInfo.tableNo || 'TableHive'}! Since your table selected Music, I've loaded our café's live Lo-Fi radio and today's trending music news for you! What music vibes or coffee pairings would you like to explore?`;
       case 'News':
-        return `📰 Welcome to Table ${tableInfo.tableNo || 'Hive'}! Since your table selected News, I've gathered today's top global, tech, and culinary headlines for you!`;
+        return `📰 Welcome to Table ${tableInfo.tableNo || 'TableHive'}! Since your table selected News, I've gathered today's top global, tech, and culinary headlines for you!`;
       case 'Movies':
-        return `🎬 Welcome to Table ${tableInfo.tableNo || 'Hive'}! Since your table selected Movies, I've queued up today's box office buzz and cinema headlines for you!`;
+        return `🎬 Welcome to Table ${tableInfo.tableNo || 'TableHive'}! Since your table selected Movies, I've queued up today's box office buzz and cinema headlines for you!`;
       case 'Games':
-        return `🎮 Welcome to Table ${tableInfo.tableNo || 'Hive'}! Since your table selected Games, I've prepared table challenges, trivia quizzes and snack pairings for you!`;
+        return `🎮 Welcome to Table ${tableInfo.tableNo || 'TableHive'}! Since your table selected Games, I've prepared table challenges, trivia quizzes and snack pairings for you!`;
       case 'Short Videos':
-        return `📱 Welcome to Table ${tableInfo.tableNo || 'Hive'}! Since your table selected Short Videos, let's explore viral barista latte art and trending café reels!`;
+        return `📱 Welcome to Table ${tableInfo.tableNo || 'TableHive'}! Since your table selected Short Videos, let's explore viral barista latte art and trending café reels!`;
       default:
-        return `Hello! I am your Exotic AI Mitra. Ask me anything about coffee roasts, dish pairings, spicy bites, or what to order today!`;
+        return `Hello! I am your TableHive AI Mitra${tableInfo?.tableNo ? ` at Table #${tableInfo.tableNo}` : ''}. Ask me anything about our menu, coffee roasts, dish pairings, or what to order today!`;
     }
   };
 
-  // Load chat history on mount & update welcome if topic changed
+  // Table-specific chat storage key (isolates chat per table number)
+  const chatStorageKey = getChatStorageKey(tableInfo?.tableNo ? String(tableInfo.tableNo) : null);
+
+  const prevTableNoRef = React.useRef<string | null | undefined>(undefined);
   useEffect(() => {
+    const currentTableNo = tableInfo?.tableNo ? String(tableInfo.tableNo) : null;
+
+    // On initial mount (undefined → something): just load normally
+    // On table change (something → different): reset to fresh welcome
+    const isTableChange =
+      prevTableNoRef.current !== undefined &&
+      prevTableNoRef.current !== currentTableNo;
+
+    prevTableNoRef.current = currentTableNo as string | null;
+
+    if (isTableChange) {
+      // Table switched — always start fresh chat (never leak cross-table messages)
+      setMessages([{ role: 'model', text: getWelcomeText(primaryTopic) }]);
+      return;
+    }
+
+    // No table set yet — show generic welcome, don't persist to storage
+    if (!currentTableNo) {
+      setMessages([{ role: 'model', text: getWelcomeText(primaryTopic) }]);
+      return;
+    }
+
+    // Same table — try to restore saved chat for this specific table
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(chatStorageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.length > 0) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           setMessages(parsed);
           return;
         }
       }
-      setMessages([
-        {
-          role: 'model',
-          text: getWelcomeText(primaryTopic),
-        },
-      ]);
     } catch (e) {}
-  }, [primaryTopic]);
+
+    // No saved history for this specific table — show fresh welcome
+    setMessages([{ role: 'model', text: getWelcomeText(primaryTopic) }]);
+  }, [tableInfo?.tableNo]);
 
   // Sync Audio Volume
   useEffect(() => {
@@ -299,9 +558,10 @@ export default function LeftAiChatDrawer() {
     if (isLeftAiChatOpen && activeTab === 'chat') {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-    if (messages.length > 0) {
+    // Only save if we have a real table number to avoid cross-table chat contamination
+    if (messages.length > 0 && tableInfo?.tableNo) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        localStorage.setItem(chatStorageKey, JSON.stringify(messages));
       } catch (e) {}
     }
   }, [messages, isLeftAiChatOpen, activeTab]);
@@ -326,7 +586,7 @@ export default function LeftAiChatDrawer() {
     ];
     setMessages(welcome);
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(chatStorageKey);
     } catch (e) {}
     showToast('Conversation cleared', 'info');
   };
@@ -336,131 +596,37 @@ export default function LeftAiChatDrawer() {
     const q = query.toLowerCase();
     if (q.includes('cricket') || q.includes('score') || q.includes('match')) {
       return [
-        '🍟 Add Peri-Peri Fries for the match?',
-        '🏆 Who is predicted to win today?',
+        '🏏 Who is predicted to win today?',
+        '🍟 What snacks pair best with the match?',
         '☕ What iced beverages keep you refreshed?'
+      ];
+    }
+    if (q.includes('movie') || q.includes('film') || q.includes('cinema') || q.includes('trailer')) {
+      return [
+        '🎬 Tell me about Pushpa 2: The Rule records',
+        '🍿 Best snacks for Bollywood movies?',
+        '👻 Why is Stree 2 such a huge hit?'
       ];
     }
     if (q.includes('music') || q.includes('lo-fi') || q.includes('song')) {
       return [
         '🍰 Which dessert pairs with lo-fi beats?',
         '☕ Tell me about Golden Crema Cappuccino',
-        '🎧 How does sound change taste?'
+        '🎧 How does acoustic music enhance flavor?'
       ];
     }
     if (q.includes('spicy') || q.includes('fries') || q.includes('burger')) {
       return [
         '🥤 What cold drink cools down the spice?',
-        '🍫 Add Chocolate Brownie for dessert?',
-        '🔥 What is the spiciest dish on the menu?'
+        '🍫 What sweet dessert balances spicy food?',
+        '🔥 What is the most popular dish on the menu?'
       ];
     }
     return [
       '⭐ What are your top 3 chef recommendations?',
-      '☕ Recommend a signature coffee roast',
-      '🧀 Tell me about Truffle Avocado Toast'
+      '☕ Recommend a signature artisan coffee',
+      '🎬 Tell me the latest Indian movie news'
     ];
-  };
-
-  // 🚀 DIRECT PLACE ORDER FROM CHAT
-  const handlePlaceOrderFromChat = async () => {
-    if (cart.length === 0) {
-      showToast('Your table cart is empty! Add a dish first.', 'warning');
-      return;
-    }
-
-    setIsPlacingOrder(true);
-    try {
-      const itemsSummary = cart.map(c => `${c.quantity}x ${c.name}`).join(', ');
-      const totalFormatted = (cartTotal * 1.08).toFixed(2);
-      const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-      const orderId = await placeOrder();
-      if (orderId) {
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'model',
-            text: `🎉 **Order #${orderId} Confirmed & Sent to Kitchen!**\n\nYour table order for **Table #${tableInfo?.tableNo || '1'}** (${itemsSummary}) has been dispatched directly to the kitchen chef! 👨‍🍳🔥`,
-            orderConfirmation: {
-              orderId,
-              tableNo: String(tableInfo?.tableNo || '1'),
-              itemsCount: totalCount,
-              totalAmount: totalFormatted,
-            },
-            followUps: [
-              '📍 Track my order status live',
-              '☕ Recommend iced drinks while we wait',
-              '🎮 Play table trivia while food is cooking'
-            ]
-          }
-        ]);
-        showToast(`Order #${orderId} sent to Kitchen! 👨‍🍳`, 'success');
-      }
-    } catch (e: any) {
-      showToast('Failed to place order. Please try again.', 'error');
-    } finally {
-      setIsPlacingOrder(false);
-    }
-  };
-
-  // ⚡ QUICK INSTANT ORDER OF A SPECIFIC DISH
-  const handleQuickOrderDish = async (dish: MenuItem) => {
-    addToCart(dish);
-    setAddedItemIds(prev => [...prev, dish.id]);
-    setIsPlacingOrder(true);
-
-    try {
-      const orderId = await placeOrder();
-      if (orderId) {
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'model',
-            text: `⚡ **Order Placed Instantly!**\n\n1x **${dish.name}** (₹${dish.price}) has been ordered for **Table #${tableInfo?.tableNo || '1'}**! Order #${orderId} is being prepared by our chef right now! 👨‍🍳`,
-            orderConfirmation: {
-              orderId,
-              tableNo: String(tableInfo?.tableNo || '1'),
-              itemsCount: 1,
-              totalAmount: (dish.price * 1.08).toFixed(2),
-            },
-            followUps: [
-              '📍 Track my order status live',
-              '🥤 Recommend cold drinks to pair with this',
-              '🍰 What sweet dessert do you recommend?'
-            ]
-          }
-        ]);
-        showToast(`Ordered ${dish.name} for Table #${tableInfo?.tableNo || '1'}!`, 'success');
-      }
-    } catch (e) {
-      showToast('Failed to place order', 'error');
-    } finally {
-      setIsPlacingOrder(false);
-    }
-  };
-
-  // Find dish in menu by name or partial name
-  const findDishByQuery = (q: string): MenuItem | undefined => {
-    if (!mockMenu || mockMenu.length === 0) return undefined;
-    const lower = q.toLowerCase();
-    return mockMenu.find(dish => {
-      const name = dish.name.toLowerCase();
-      if (lower.includes(name)) return true;
-      if (name.includes('peri-peri') && lower.includes('peri')) return true;
-      if (name.includes('fries') && lower.includes('fries')) return true;
-      if (name.includes('cheesecake') && lower.includes('cheesecake')) return true;
-      if (name.includes('brownie') && lower.includes('brownie')) return true;
-      if (name.includes('crostini') && lower.includes('crostini')) return true;
-      if (name.includes('burger') && lower.includes('burger')) return true;
-      if (name.includes('pizza') && lower.includes('pizza')) return true;
-      if (name.includes('espresso') && lower.includes('espresso')) return true;
-      if (name.includes('cappuccino') && lower.includes('cappuccino')) return true;
-      if (name.includes('latte') && lower.includes('latte')) return true;
-      if (name.includes('toast') && lower.includes('toast')) return true;
-      if (name.includes('combo') && lower.includes('combo')) return true;
-      return false;
-    });
   };
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -469,23 +635,7 @@ export default function LeftAiChatDrawer() {
 
     const lowerQuery = rawQuery.toLowerCase();
 
-    // 1. Check if user clicked "Track my order" prompt
-    if (lowerQuery.includes('track') && lowerQuery.includes('order')) {
-      const userMessage: ChatMessage = { role: 'user', text: rawQuery };
-      setMessages(prev => [
-        ...prev,
-        userMessage,
-        {
-          role: 'model',
-          text: `📍 You can track your Table #${tableInfo?.tableNo || '1'} order live! Tap the button below to view real-time kitchen progress from 'Received' to 'Ready'.`,
-          orderTrackPrompt: true
-        }
-      ]);
-      setInput('');
-      return;
-    }
-
-    // 2. Check if user clicked an "Add [dish]..." prompt or asked to add/order a dish
+    // Check if user specifically asks to place or give an order in AI Mitra
     const isOrderIntent = 
       lowerQuery.includes('give order') || 
       lowerQuery.includes('place order') || 
@@ -495,44 +645,27 @@ export default function LeftAiChatDrawer() {
       lowerQuery.startsWith('order ') ||
       lowerQuery.includes('i want to order');
 
-    const isAddIntent = lowerQuery.includes('add ') || lowerQuery.includes('want ') || isOrderIntent;
-    const matchedDish = findDishByQuery(lowerQuery);
-
-    if (matchedDish && isAddIntent) {
-      // Add dish to table cart
-      addToCart(matchedDish);
-      setAddedItemIds(prev => [...prev, matchedDish.id]);
-
+    if (isOrderIntent) {
       const userMessage: ChatMessage = { role: 'user', text: rawQuery };
-      const aiReplyMessage: ChatMessage = {
-        role: 'model',
-        text: `✅ **Added ${matchedDish.name} (₹${matchedDish.price}) to your Table #${tableInfo?.tableNo || '1'} cart!** 🍽️\n\nTap **"Place Order Now"** below to send it straight to the kitchen chef, or choose more treats!`,
-        orderPromptDish: matchedDish,
-        followUps: [
-          '⚡ Yes, Place Order to Kitchen Now!',
-          '🥤 Suggest a refreshing drink to pair with it',
-          '🍰 What sweet dessert do you recommend?'
-        ]
-      };
-
-      setMessages(prev => [...prev, userMessage, aiReplyMessage]);
+      setMessages(prev => [
+        ...prev,
+        userMessage,
+        {
+          role: 'model',
+          text: `🍽️ To place your table order, please browse our full **Interactive Menu** right beside this chat! You can select any dishes, customize spice levels, and send them directly to the kitchen chef.\n\nI am your **AI Mitra** dining companion—feel free to ask me for taste recommendations, Indian cinema trivia, live cricket match analysis, or lo-fi café radio beats!`,
+          followUps: [
+            '🍿 What snacks pair best with Indian movies?',
+            '🏏 What is the live cricket match score?',
+            '☕ Which artisan coffee is a customer favorite?',
+            '🍰 What dessert do you recommend today?'
+          ]
+        }
+      ]);
       setInput('');
-      showToast(`Added ${matchedDish.name} to Table #${tableInfo?.tableNo || '1'} cart!`, 'success');
       return;
     }
 
-    // 3. User clicked "Yes, Place Order to Kitchen Now!" or typed "give order" / "place order"
-    if (isOrderIntent || lowerQuery.includes('place order')) {
-      if (cart.length > 0) {
-        const userMessage: ChatMessage = { role: 'user', text: rawQuery };
-        setMessages(prev => [...prev, userMessage]);
-        setInput('');
-        await handlePlaceOrderFromChat();
-        return;
-      }
-    }
-
-    // 4. Standard conversational AI query
+    // Standard conversational AI query
     const userMessage: ChatMessage = { role: 'user', text: rawQuery };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
@@ -555,12 +688,14 @@ export default function LeftAiChatDrawer() {
       }
     } catch (err: any) {
       // Intelligent fallback
-      let fallbackReply = `Our kitchen is sizzling! Peri-Peri Fries and Artisan Espresso are always ready for your table.`;
+      let fallbackReply = `I am your dining companion! Feel free to ask me about Indian cinema blockbusters, live cricket action, café music, or culinary recommendations.`;
       const q = rawQuery.toLowerCase();
       if (q.includes('cricket') || q.includes('score') || q.includes('match')) {
-        fallbackReply = `🏏 Right now in the thrilling IND vs AUS 3rd T20I at Eden Gardens: India is 188/4 in 18.2 overs, needing just 14 runs from 10 balls! Shubman Gill (68*) and Hardik Pandya (32*) are batting with immense power! For these final overs, our hot Peri-Peri Fries (₹160) and loaded Nachos make the ultimate match companion!`;
+        fallbackReply = `🏏 Right now in live cricket: India and top international series are delivering electrifying action! Ask me about specific team match equations or players!`;
+      } else if (q.includes('movie') || q.includes('film') || q.includes('cinema')) {
+        fallbackReply = `🎬 Indian cinema is on fire right now! From Pushpa 2's mass trailer breaking records to Stree 2's historic ₹600 Cr box office run and Kalki 2898 AD's epic universe, there's so much to talk about!`;
       } else if (q.includes('music') || q.includes('lo-fi')) {
-        fallbackReply = `🎵 Our café's Lo-Fi Lounge is playing live! Smooth acoustic and jazz chords naturally heighten taste receptors for dark chocolate and espresso crema. Try pairing our Toasted Hazelnut Latte with a warm Chocolate Fudge Brownie!`;
+        fallbackReply = `🎵 Our café's Lo-Fi Lounge is playing live! Smooth acoustic and jazz chords naturally heighten taste receptors for dark chocolate and espresso crema.`;
       }
       const followUps = getFollowUpQuestions(rawQuery);
       setMessages(prev => [
@@ -578,36 +713,12 @@ export default function LeftAiChatDrawer() {
 
   const handleAskAboutNews = (news: TopicNewsItem, topicName: string) => {
     setActiveTab('chat');
-    handleSendMessage(`Tell me more about this ${topicName} news: "${news.title}" and suggest delicious café pairings to enjoy while reading it!`);
+    handleSendMessage(`Tell me more about this ${topicName} news: "${news.title}" and share interesting trivia about it!`);
   };
 
   const handleAskPrompt = (prompt: string) => {
     setActiveTab('chat');
     handleSendMessage(prompt);
-  };
-
-  // Find dishes mentioned in the message text
-  const getDishesMentioned = (text: string): MenuItem[] => {
-    if (!mockMenu || mockMenu.length === 0) return [];
-    const lower = text.toLowerCase();
-    return mockMenu.filter(dish => {
-      const name = dish.name.toLowerCase();
-      if (lower.includes(name)) return true;
-      if (name.includes('fries') && lower.includes('fries')) return true;
-      if (name.includes('cheesecake') && lower.includes('cheesecake')) return true;
-      if (name.includes('brownie') && lower.includes('brownie')) return true;
-      if (name.includes('margherita') && lower.includes('margherita')) return true;
-      if (name.includes('espresso') && lower.includes('espresso')) return true;
-      if (name.includes('cappuccino') && lower.includes('cappuccino')) return true;
-      if (name.includes('latte') && lower.includes('latte')) return true;
-      return false;
-    }).slice(0, 2);
-  };
-
-  const handleQuickAddDish = (dish: MenuItem) => {
-    addToCart(dish);
-    setAddedItemIds(prev => [...prev, dish.id]);
-    showToast(`Added ${dish.name} to table cart!`, 'success');
   };
 
   // Helper for topic icons
@@ -660,9 +771,9 @@ export default function LeftAiChatDrawer() {
         aria-hidden="true"
       />
 
-      {/* Left AI Mitra Docked Panel (Left Side) */}
+      {/* Left AI Mitra Docked Panel (Left Side flush to window edge) */}
       <aside 
-        className="fixed top-0 lg:top-[65px] bottom-0 left-0 lg:left-16 z-30 w-full sm:w-[410px] xl:w-[430px] flex flex-col bg-white border-r border-slate-200/90 shadow-xl lg:shadow-xs transition-all duration-300 ease-in-out h-[100dvh] lg:h-[calc(100dvh-65px)]"
+        className="fixed top-0 lg:top-[65px] bottom-0 left-0 z-30 w-full sm:w-[410px] xl:w-[430px] flex flex-col bg-white border-r border-slate-200/90 shadow-xl lg:shadow-xs transition-all duration-300 ease-in-out h-[100dvh] lg:h-[calc(100dvh-65px)]"
         role="dialog"
         aria-label="AI Mitra Chat"
       >
@@ -692,7 +803,7 @@ export default function LeftAiChatDrawer() {
               </div>
               <p className="text-[11px] text-purple-200/80 flex items-center gap-1 leading-tight">
                 <Sparkles className="w-3 h-3 text-amber-300 flex-shrink-0" />
-                <span>Table #{tableInfo?.tableNo || '1'} Assistant & Ordering</span>
+                <span>Table #{tableInfo?.tableNo || '1'} AI Companion</span>
               </p>
             </div>
           </div>
@@ -737,7 +848,7 @@ export default function LeftAiChatDrawer() {
                 {isChatTab ? (
                   <>
                     <MessageSquare className="w-3.5 h-3.5 text-amber-300" />
-                    <span>AI Chat & Ordering</span>
+                    <span>AI Chat</span>
                   </>
                 ) : (
                   <>
@@ -794,20 +905,50 @@ export default function LeftAiChatDrawer() {
               </div>
             )}
 
-            {/* Smart Topic Header Bar (with quick jump to Scorecard) */}
-            {primaryTopic === 'Cricket' && (
+            {/* Smart Topic Header Bar (Real Cricket Live Score) */}
+            {(primaryTopic === 'Cricket' || (!primaryTopic && activeCricketMatch)) && (
               <div className="px-3.5 py-2 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between text-xs flex-shrink-0 border-b border-blue-800/40">
-                <div className="flex items-center gap-2 truncate">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse flex-shrink-0" />
+                <div className="flex items-center gap-2 truncate min-w-0 mr-2">
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${activeCricketMatch?.isLive ? 'bg-rose-500 animate-pulse' : 'bg-emerald-400'}`} />
                   <span className="font-bold text-white text-[11px] truncate">
-                    IND vs AUS • 188/4 (18.2 ov) • Need 14 in 10b
+                    {activeCricketMatch ? (
+                      <>
+                        <span className="text-amber-300 font-extrabold mr-1">{activeCricketMatch.team1.shortName}</span>
+                        {activeCricketMatch.team1.fullScore && <span className="mr-1 text-slate-200">{activeCricketMatch.team1.fullScore}</span>}
+                        <span className="text-slate-400 font-normal mr-1">vs</span>
+                        <span className="text-amber-300 font-extrabold mr-1">{activeCricketMatch.team2.shortName}</span>
+                        {activeCricketMatch.team2.fullScore && <span className="mr-1 text-slate-200">{activeCricketMatch.team2.fullScore}</span>}
+                        <span className="text-emerald-300 font-medium ml-1">({activeCricketMatch.status})</span>
+                      </>
+                    ) : (
+                      'Loading live cricket scores...'
+                    )}
                   </span>
                 </div>
                 <button
                   onClick={() => setActiveTab('Cricket')}
                   className="px-2 py-0.5 rounded-lg bg-blue-700/60 hover:bg-blue-600/60 text-[10px] font-bold text-amber-300 flex items-center gap-1 transition-colors flex-shrink-0"
                 >
-                  <span>Stadium Widget</span>
+                  <span>Scorecard</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Smart Topic Header Bar (Movies Cinema Lounge Spotlight) */}
+            {primaryTopic === 'Movies' && (
+              <div className="px-3.5 py-2 bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 text-white flex items-center justify-between text-xs flex-shrink-0 border-b border-purple-800/40">
+                <div className="flex items-center gap-2 truncate min-w-0 mr-2">
+                  <Film className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span className="font-bold text-white text-[11px] truncate">
+                    Cinema Lounge: <span className="text-amber-300 font-extrabold">{activeMovieClip.title}</span>
+                  </span>
+                </div>
+                <button
+                  onClick={() => setActiveTab('Movies')}
+                  className="px-2 py-0.5 rounded-lg bg-purple-700/60 hover:bg-purple-600/60 text-[10px] font-bold text-amber-300 flex items-center gap-1 transition-colors flex-shrink-0"
+                >
+                  <span>Watch Clips</span>
                   <ExternalLink className="w-2.5 h-2.5" />
                 </button>
               </div>
@@ -841,7 +982,6 @@ export default function LeftAiChatDrawer() {
             <div className="flex-1 overflow-y-auto px-3.5 py-3.5 space-y-3.5 bg-slate-50/40">
               {messages.map((msg, idx) => {
                 const isUser = msg.role === 'user';
-                const dishes = !isUser ? getDishesMentioned(msg.text) : [];
 
                 return (
                   <div
@@ -915,151 +1055,6 @@ export default function LeftAiChatDrawer() {
                       </div>
                     )}
 
-                    {/* 🍽️ Interactive Dish Cards with +Add AND ⚡Order Now buttons */}
-                    {dishes.length > 0 && (
-                      <div className="ml-9 mt-0.5 flex flex-col gap-1.5 max-w-[92%] w-full">
-                        {dishes.map(dish => {
-                          const inCart = cart.some(c => c.id === dish.id);
-                          return (
-                            <div
-                              key={dish.id}
-                              className="flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-white border border-purple-200 shadow-xs hover:border-purple-400 transition-all"
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dish.isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                <div className="truncate">
-                                  <p className="font-bold text-xs text-slate-900 truncate">{dish.name}</p>
-                                  <p className="text-[11px] text-purple-700 font-extrabold">₹{dish.price}</p>
-                                </div>
-                              </div>
-                              
-                              <div className="flex items-center gap-1.5 flex-shrink-0">
-                                <button
-                                  onClick={() => handleQuickAddDish(dish)}
-                                  className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all ${
-                                    inCart 
-                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                      : 'bg-purple-100 hover:bg-purple-200 text-purple-800'
-                                  }`}
-                                  title="Add to Table Cart"
-                                >
-                                  {inCart ? (
-                                    <>
-                                      <Check className="w-3 h-3 text-emerald-600" />
-                                      <span>In Cart</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Plus className="w-3 h-3" />
-                                      <span>Add</span>
-                                    </>
-                                  )}
-                                </button>
-
-                                <button
-                                  onClick={() => handleQuickOrderDish(dish)}
-                                  disabled={isPlacingOrder}
-                                  className="px-3 py-1.5 rounded-xl text-[11px] font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-xs transition-all flex items-center gap-1 active:scale-95 disabled:opacity-50"
-                                  title="Order directly to kitchen for table"
-                                >
-                                  <Zap className="w-3 h-3" />
-                                  <span>Order Now</span>
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* 🚀 Interactive Place Order Card (Triggered by 'Add dish' prompts) */}
-                    {msg.orderPromptDish && (
-                      <div className="ml-9 mt-1 p-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 shadow-sm max-w-[95%] w-full flex items-center justify-between gap-3 animate-fade-in">
-                        <div className="min-w-0">
-                          <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider block">
-                            Table #{tableInfo?.tableNo || '1'} Order Ready
-                          </span>
-                          <p className="text-xs font-bold text-slate-900 truncate">
-                            {msg.orderPromptDish.name} • ₹{msg.orderPromptDish.price}
-                          </p>
-                        </div>
-                        <button
-                          onClick={handlePlaceOrderFromChat}
-                          disabled={isPlacingOrder}
-                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all flex-shrink-0"
-                        >
-                          {isPlacingOrder ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Zap className="w-3.5 h-3.5" />
-                          )}
-                          <span>Place Order to Kitchen</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {/* 🎉 Order Confirmation Ticket inside Chat */}
-                    {msg.orderConfirmation && (
-                      <div className="ml-9 mt-1 p-3.5 rounded-2xl bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-900 text-white border border-emerald-500/40 shadow-md max-w-[95%] w-full flex flex-col gap-2.5 animate-fade-in">
-                        <div className="flex items-center justify-between border-b border-emerald-500/30 pb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                            <span className="text-xs font-extrabold text-emerald-300 uppercase tracking-wider">
-                              Kitchen Order Transmitted
-                            </span>
-                          </div>
-                          <span className="text-xs font-mono font-bold text-amber-300">
-                            #{msg.orderConfirmation.orderId}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs text-slate-200">
-                          <span>Session: <strong>Table #{msg.orderConfirmation.tableNo}</strong></span>
-                          <span>Total: <strong>₹{msg.orderConfirmation.totalAmount}</strong></span>
-                        </div>
-
-                        <div className="flex items-center gap-2 pt-1">
-                          <button
-                            onClick={() => {
-                              setIsLeftAiChatOpen(false);
-                              router.push('/track');
-                            }}
-                            className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
-                          >
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Track Order Live</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => {
-                              setIsLeftAiChatOpen(false);
-                              router.push('/cart');
-                            }}
-                            className="py-1.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center transition-all"
-                          >
-                            View Receipt
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 📍 Direct Track Order Prompt */}
-                    {msg.orderTrackPrompt && (
-                      <div className="ml-9 mt-1 max-w-[95%] w-full">
-                        <button
-                          onClick={() => {
-                            setIsLeftAiChatOpen(false);
-                            router.push('/track');
-                          }}
-                          className="w-full py-2 px-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
-                        >
-                          <Clock className="w-4 h-4" />
-                          <span>Open Live Order Tracking Page</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-
                     {/* Follow-up Selectable Questions under AI responses */}
                     {msg.followUps && msg.followUps.length > 0 && (
                       <div className="ml-9 mt-1 flex flex-wrap gap-1.5 max-w-[92%]">
@@ -1084,62 +1079,12 @@ export default function LeftAiChatDrawer() {
                   <div className="w-7 h-7 rounded-xl bg-purple-100 flex items-center justify-center">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-700" />
                   </div>
-                  <span className="font-medium">AI Mitra is thinking & checking kitchen pairings...</span>
+                  <span className="font-medium">AI Mitra is thinking...</span>
                 </div>
               )}
 
               <div ref={messagesEndRef} />
             </div>
-
-            {/* 🛍️ Floating Table Cart & Instant Place Order Bar */}
-            {cart.length > 0 && (
-              <div className="mx-3 my-1.5 p-2.5 rounded-2xl bg-gradient-to-r from-emerald-900 via-teal-950 to-slate-900 text-white border border-emerald-500/40 shadow-lg flex items-center justify-between gap-2.5 flex-shrink-0 animate-fade-in">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-xl bg-emerald-500 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold leading-tight truncate">
-                      Table #{tableInfo?.tableNo || '1'} Order Ready
-                    </p>
-                    <p className="text-[10px] text-emerald-300 font-semibold truncate leading-tight mt-0.5">
-                      ₹{cartTotal.toFixed(0)} • {cart.map(c => `${c.quantity}x ${c.name}`).join(', ')}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button
-                    onClick={() => {
-                      setIsLeftAiChatOpen(false);
-                      router.push('/cart');
-                    }}
-                    className="px-2 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold transition-colors"
-                    title="View Cart Details"
-                  >
-                    Cart
-                  </button>
-
-                  <button
-                    onClick={handlePlaceOrderFromChat}
-                    disabled={isPlacingOrder}
-                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-900 font-extrabold text-[11px] flex items-center gap-1 shadow-gold transition-all transform active:scale-95 disabled:opacity-50"
-                  >
-                    {isPlacingOrder ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin text-slate-900" />
-                        <span>Sending...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-3 h-3 fill-slate-900" />
-                        <span>Place Order</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Persistent Quick Prompt Bar */}
             <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-200/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-shrink-0">
@@ -1149,7 +1094,7 @@ export default function LeftAiChatDrawer() {
               </span>
               {[
                 "🏏 What is the live cricket match score and equation right now?",
-                "🍟 Order Peri-Peri Fries for our table",
+                "🍿 What snacks pair best with Indian cinema movies?",
                 "☕ What is your best-selling artisan coffee?",
                 "🍰 Suggest a decadent dessert for our table"
               ].map((prompt, i) => (
@@ -1174,7 +1119,7 @@ export default function LeftAiChatDrawer() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Ask AI Mitra about cricket, scores, menu, order dishes..."
+                placeholder="Ask AI Mitra about Indian cinema, cricket scores, café music..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isLoading}
@@ -1194,60 +1139,142 @@ export default function LeftAiChatDrawer() {
         )}
 
         {/* =========================================================================
-            TAB: CRICKET FEED (LIVE STADIUM SCORECARD & NEWS)
+            TAB: CRICKET FEED (REAL LIVE MATCHES & SCORECARD)
         ========================================================================= */}
         {activeTab === 'Cricket' && (
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/60 no-scrollbar">
-            {/* Live Match Stadium Scorecard Banner */}
+            {/* Real Match Filter / Selector Bar */}
+            {cricketMatches.length > 0 && (
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                {cricketMatches.map((m, mIdx) => {
+                  const isSelected = mIdx === selectedCricketMatchIndex;
+                  return (
+                    <button
+                      key={m.id || mIdx}
+                      onClick={() => setSelectedCricketMatchIndex(mIdx)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-blue-700 to-indigo-700 text-white shadow-xs'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {m.isLive ? (
+                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      )}
+                      <span>{m.team1.shortName} vs {m.team2.shortName}</span>
+                      {m.isLive && (
+                        <span className="text-[9px] uppercase px-1 py-0.5 rounded bg-rose-500 text-white font-extrabold tracking-wider">
+                          LIVE
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Real Live Match Stadium Scorecard Banner */}
             <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white border border-blue-500/30 shadow-md">
               <div className="flex items-center justify-between mb-2">
                 <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                  Live Match • 3rd T20I
+                  {activeCricketMatch?.isLive ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                      Live Match • {activeCricketMatch.format} {activeCricketMatch.desc}
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      {activeCricketMatch?.state || 'Match'} • {activeCricketMatch?.format} {activeCricketMatch?.desc}
+                    </>
+                  )}
                 </span>
-                <span className="text-[10px] font-semibold text-blue-200 bg-blue-900/60 px-2 py-0.5 rounded-full border border-blue-400/30">
-                  Eden Gardens
+                <span className="text-[10px] font-semibold text-blue-200 bg-blue-900/60 px-2 py-0.5 rounded-full border border-blue-400/30 truncate max-w-[170px]">
+                  {activeCricketMatch?.venue || 'Live Stadium'}
                 </span>
               </div>
+
+              {/* Series Title */}
+              <p className="text-[11px] font-medium text-slate-300/90 mb-2 truncate">
+                {activeCricketMatch?.series || 'International Cricket Series'}
+              </p>
 
               <div className="flex items-center justify-between py-2 border-y border-blue-800/40">
                 <div>
-                  <p className="text-xs font-bold text-slate-300">India (Target: 202)</p>
-                  <h4 className="text-xl font-black text-white tracking-tight">188/4</h4>
-                  <p className="text-[10px] text-emerald-400 font-semibold">18.2 Overs • CRR: 10.25</p>
+                  <p className="text-xs font-bold text-slate-300">{activeCricketMatch?.team1.name || 'Team 1'}</p>
+                  <h4 className="text-xl font-black text-white tracking-tight">
+                    {activeCricketMatch?.team1.score || 'Yet to bat'}
+                  </h4>
+                  {activeCricketMatch?.team1.overs && (
+                    <p className="text-[10px] text-emerald-400 font-semibold">{activeCricketMatch.team1.overs}</p>
+                  )}
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-slate-300">Australia</p>
-                  <h4 className="text-lg font-bold text-slate-300">201/6 (20 ov)</h4>
-                  <p className="text-[10px] text-amber-300 font-bold">Need 14 from 10 balls</p>
+                  <p className="text-xs font-bold text-slate-300">{activeCricketMatch?.team2.name || 'Team 2'}</p>
+                  <h4 className="text-xl font-black text-white tracking-tight">
+                    {activeCricketMatch?.team2.score || 'Yet to bat'}
+                  </h4>
+                  {activeCricketMatch?.team2.overs && (
+                    <p className="text-[10px] text-amber-300 font-semibold">{activeCricketMatch.team2.overs}</p>
+                  )}
                 </div>
               </div>
 
+              {/* Match Status / Equation */}
               <div className="mt-3 flex items-center justify-between text-xs text-blue-200/90">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-white">S. Gill 68* (41)</span>
-                  <span>•</span>
-                  <span className="font-semibold text-white">H. Pandya 32* (14)</span>
+                <div className="flex items-center gap-1.5 truncate max-w-[240px]">
+                  <span className="font-semibold text-amber-300 text-xs">
+                    {activeCricketMatch?.status || 'Match in progress'}
+                  </span>
                 </div>
-                <button
-                  onClick={() => setShowCricketIframe(!showCricketIframe)}
-                  className="text-[11px] font-bold text-amber-300 hover:text-white underline flex items-center gap-1"
-                >
-                  {showCricketIframe ? 'Hide Widget' : 'View Full Scoreboard'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchLiveCricket}
+                    disabled={isLoadingCricket}
+                    className="text-[11px] font-bold text-blue-300 hover:text-white flex items-center gap-1 flex-shrink-0"
+                    title="Refresh live score"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isLoadingCricket ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCricketIframe(!showCricketIframe)}
+                    className="text-[11px] font-bold text-amber-300 hover:text-white underline flex items-center gap-1"
+                  >
+                    {showCricketIframe ? 'Hide' : 'Full Board'}
+                  </button>
+                </div>
               </div>
+
+              {/* Quick Prompt: Ask AI Mitra & order snacks */}
+              {activeCricketMatch && (
+                <div className="mt-3 pt-2.5 border-t border-blue-800/50 flex items-center justify-between">
+                  <button
+                    onClick={() => {
+                      setActiveTab('chat');
+                      handleSendMessage(`What is the situation in ${activeCricketMatch.team1.shortName} vs ${activeCricketMatch.team2.shortName}? Tell me about the current match equation!`);
+                    }}
+                    className="text-[11px] font-bold text-amber-300 hover:text-white flex items-center gap-1"
+                  >
+                    <span>💬 Discuss Match with AI Mitra</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
 
               {/* Collapsible Live Stadium Widget Iframe */}
               {showCricketIframe && (
                 <div className="mt-3 pt-3 border-t border-blue-800/50">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-                      CricTimes Live Stadium Widget
+                      Live Stadium Feed
                     </span>
                     <button
                       onClick={() => setCricketRefreshKey(k => k + 1)}
                       className="p-1 rounded-md hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
-                      title="Refresh score"
+                      title="Refresh widget"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                     </button>
@@ -1313,7 +1340,7 @@ export default function LeftAiChatDrawer() {
                           onClick={() => handleAskAboutNews(item, 'Cricket')}
                           className="text-[11px] font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
                         >
-                          <span>Ask AI Mitra & Order Snacks</span>
+                          <span>💬 Discuss with AI Mitra</span>
                           <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
@@ -1489,7 +1516,7 @@ export default function LeftAiChatDrawer() {
                           onClick={() => handleAskAboutNews(item, 'Music')}
                           className="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
                         >
-                          <span>Ask AI Mitra & Order Pairings</span>
+                          <span>💬 Discuss with AI Mitra</span>
                           <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
@@ -1502,9 +1529,275 @@ export default function LeftAiChatDrawer() {
         )}
 
         {/* =========================================================================
-            GENERIC TOPIC TABS: News, Movies, Games, Short Videos
+            TAB: MOVIES FEED (CINEMA LOUNGE, TRAILER CLIPS & AI NEWS)
         ========================================================================= */}
-        {activeTab !== 'chat' && activeTab !== 'Cricket' && activeTab !== 'Music' && (
+        {activeTab === 'Movies' && (
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/60 no-scrollbar">
+            {/* Movie Clip Selector Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+              {MOVIE_CLIPS.map((clip, cIdx) => {
+                const isSelected = cIdx === selectedMovieClipIndex;
+                return (
+                  <button
+                    key={clip.id}
+                    onClick={() => {
+                      setSelectedMovieClipIndex(cIdx);
+                      setShowMoviePlayer(true);
+                    }}
+                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Film className="w-3 h-3 text-amber-400" />
+                    <span>{clip.title.split(':')[0]}</span>
+                    <span className={`text-[9px] uppercase px-1 py-0.2 rounded font-extrabold ${
+                      isSelected
+                        ? 'bg-amber-400 text-slate-900'
+                        : clip.industry === 'Bollywood'
+                        ? 'bg-rose-100 text-rose-800'
+                        : clip.industry === 'South'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-sky-100 text-sky-800'
+                    }`}>
+                      {clip.industryLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Cinema Lounge Clip Player Card */}
+            <div className="p-4 rounded-3xl bg-gradient-to-br from-slate-950 via-purple-950 to-indigo-950 text-white border border-purple-500/30 shadow-md">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                    <Film className="w-3.5 h-3.5" />
+                    Cinema Lounge
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded font-extrabold uppercase tracking-wider bg-white/10 text-purple-200 border border-white/20">
+                    {activeMovieClip.industryLabel} • {activeMovieClip.genre}
+                  </span>
+                </div>
+                <span className="text-[10px] font-semibold text-purple-200 bg-purple-900/60 px-2 py-0.5 rounded-full border border-purple-400/30">
+                  {activeMovieClip.year}
+                </span>
+              </div>
+
+              <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight">
+                {activeMovieClip.title}
+              </h3>
+              <p className="text-[11px] text-purple-200/80 mb-3 truncate">
+                Directed by <strong>{activeMovieClip.director}</strong> • Starring {activeMovieClip.cast}
+              </p>
+
+              {/* YouTube Responsive Video Player */}
+              {showMoviePlayer ? (
+                <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black border border-purple-500/30 shadow-inner mb-3">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${activeMovieClip.youtubeId}?autoplay=0&rel=0`}
+                    className="w-full h-full border-none"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={activeMovieClip.title}
+                  />
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-purple-900/30 border border-purple-800/40 text-center mb-3">
+                  <button
+                    onClick={() => setShowMoviePlayer(true)}
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs inline-flex items-center gap-1.5"
+                  >
+                    <Video className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Watch Movie Clip</span>
+                  </button>
+                </div>
+              )}
+
+              {/* AI Trivia & Café Pairing Block */}
+              <div className="space-y-2 p-3 rounded-2xl bg-white/5 border border-purple-500/20 text-xs">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300 flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-purple-100 leading-relaxed">
+                    <strong>AI Mitra Trivia:</strong> {activeMovieClip.trivia}
+                  </p>
+                </div>
+                <div className="flex items-start gap-2 pt-1 border-t border-purple-800/30">
+                  <Coffee className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-200 leading-relaxed">
+                    <strong>Movie Pairing:</strong> {activeMovieClip.suggestedSnack}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action: Ask AI Mitra */}
+              <div className="mt-3 pt-2.5 border-t border-purple-800/50 flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setActiveTab('chat');
+                    handleSendMessage(`Tell me all about ${activeMovieClip.title}! What makes this blockbuster so iconic across ${activeMovieClip.industryLabel}?`);
+                  }}
+                  className="text-[11px] font-bold text-amber-300 hover:text-white flex items-center gap-1 group"
+                >
+                  <span>💬 Discuss Movie with AI Mitra</span>
+                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+
+                <button
+                  onClick={() => setShowMoviePlayer(!showMoviePlayer)}
+                  className="text-[10px] text-purple-300 hover:text-white underline"
+                >
+                  {showMoviePlayer ? 'Hide Player' : 'Show Player'}
+                </button>
+              </div>
+            </div>
+
+            {/* Trending Cinema News & Headlines with Industry Filters */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Film className="w-4 h-4 text-purple-600" />
+                    Real-Time Cinema News
+                  </h4>
+                  <span className="flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-rose-50 text-[9px] font-extrabold text-rose-600 border border-rose-200 uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                    Live
+                  </span>
+                </div>
+                <button
+                  onClick={() => fetchNewsForTopic('Movies', true)}
+                  disabled={isLoadingTopicNews.Movies}
+                  className="text-[11px] text-purple-700 hover:underline flex items-center gap-1 font-semibold"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isLoadingTopicNews.Movies ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+
+              {/* 🌟 Industry Filter Tabs: All, Bollywood, South (Tollywood), Hollywood, Box Office */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                {[
+                  { id: 'All', label: '🎬 All Cinema' },
+                  { id: 'Bollywood', label: '🌟 Bollywood' },
+                  { id: 'South', label: '🔥 South (Tollywood)' },
+                  { id: 'Hollywood', label: '🍿 Hollywood' },
+                  { id: 'Box Office', label: '💰 Box Office' }
+                ].map(tab => {
+                  const isActive = selectedMovieIndustry === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setSelectedMovieIndustry(tab.id)}
+                      className={`px-2.5 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-xs'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {isLoadingTopicNews.Movies ? (
+                <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-600 mx-auto mb-2" />
+                  <p className="text-xs text-slate-500">Curating real-time Bollywood, South & Hollywood news...</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {(() => {
+                    const allMoviesNews = topicNewsMap.Movies || [];
+                    const filtered = allMoviesNews.filter(item => {
+                      if (selectedMovieIndustry === 'All') return true;
+                      const ind = (item.industry || '').toLowerCase();
+                      const cat = (item.category || '').toLowerCase();
+                      const title = (item.title || '').toLowerCase();
+                      const summary = (item.summary || '').toLowerCase();
+
+                      if (selectedMovieIndustry === 'Bollywood') {
+                        return ind.includes('bollywood') || cat.includes('bollywood') || cat.includes('hindi') || title.includes('stree') || title.includes('singham') || title.includes('khan') || title.includes('pathaan') || title.includes('ramayana') || title.includes('bhatt');
+                      }
+                      if (selectedMovieIndustry === 'South') {
+                        return ind.includes('south') || cat.includes('south') || cat.includes('tollywood') || cat.includes('kollywood') || cat.includes('telugu') || cat.includes('tamil') || title.includes('pushpa') || title.includes('kalki') || title.includes('devara') || title.includes('allu') || title.includes('prabhas') || title.includes('coolie') || title.includes('thug') || title.includes('kantara');
+                      }
+                      if (selectedMovieIndustry === 'Hollywood') {
+                        return ind.includes('hollywood') || cat.includes('hollywood') || title.includes('deadpool') || title.includes('nolan') || title.includes('avatar') || title.includes('dune') || title.includes('gladiator') || title.includes('marvel') || title.includes('universal') || title.includes('cameron');
+                      }
+                      if (selectedMovieIndustry === 'Box Office') {
+                        return ind.includes('global') || cat.includes('box office') || title.includes('box office') || title.includes('collection') || title.includes('gross') || title.includes('cr') || summary.includes('box office') || summary.includes('gross');
+                      }
+                      return true;
+                    });
+
+                    const displayNews = filtered.length > 0 ? filtered : allMoviesNews;
+
+                    return displayNews.map((item, idx) => {
+                      const isBollywood = item.industry === 'Bollywood' || item.category?.toLowerCase().includes('bollywood');
+                      const isSouth = item.industry === 'South' || item.category?.toLowerCase().includes('tollywood') || item.category?.toLowerCase().includes('south') || item.category?.toLowerCase().includes('kollywood');
+                      const isHollywood = item.industry === 'Hollywood' || item.category?.toLowerCase().includes('hollywood');
+
+                      const badgeStyle = isBollywood
+                        ? 'bg-rose-50 text-rose-700 border-rose-200'
+                        : isSouth
+                        ? 'bg-purple-50 text-purple-700 border-purple-200'
+                        : isHollywood
+                        ? 'bg-sky-50 text-sky-700 border-sky-200'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+                      const sourceName = item.source || (isBollywood ? 'Bollywood Hungama' : isSouth ? 'Cinema Express' : isHollywood ? 'Variety' : 'Box Office');
+
+                      return (
+                        <div
+                          key={idx}
+                          className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-purple-300 transition-all flex flex-col gap-2 group"
+                        >
+                          <div className="flex items-center justify-between text-[10px]">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${badgeStyle}`}>
+                                {item.category}
+                              </span>
+                              <span className="text-slate-400 font-medium text-[9px] uppercase tracking-wider">
+                                • {sourceName}
+                              </span>
+                            </div>
+                            <span className="text-slate-500 font-semibold">{item.time}</span>
+                          </div>
+
+                          <h5 className="font-bold text-xs text-slate-900 group-hover:text-purple-700 transition-colors leading-snug">
+                            {item.title}
+                          </h5>
+
+                          <p className="text-[11px] text-slate-700 leading-relaxed">
+                            {item.summary}
+                          </p>
+
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                            <button
+                              onClick={() => handleAskAboutNews(item, item.category || 'Movies')}
+                              className="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
+                            >
+                              <span>💬 Discuss with AI Mitra</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            GENERIC TOPIC TABS: News, Games, Short Videos
+        ========================================================================= */}
+        {activeTab !== 'chat' && activeTab !== 'Cricket' && activeTab !== 'Music' && activeTab !== 'Movies' && (
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/60 no-scrollbar">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -1553,7 +1846,7 @@ export default function LeftAiChatDrawer() {
                         onClick={() => handleAskAboutNews(item, activeTab)}
                         className="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all"
                       >
-                        <span>Ask AI Mitra & Order Pairings</span>
+                        <span>💬 Discuss with AI Mitra</span>
                         <ArrowRight className="w-3 h-3" />
                       </button>
                     </div>

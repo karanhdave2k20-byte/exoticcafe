@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "cd webapp && npm run dev",
+    "dev": "concurrently -n \"SERVER,WEBAPP\" -c \"blue,green\" \"npm run server\" \"npm run client\"",
+    "client": "cd webapp && npm run dev",
+    "server": "cd server && node server.js",
     "build": "cd webapp && npm run build",
-    "start": "cd webapp && npm run start",
-    "server": "cd server && node server.js"
+    "start": "concurrently -n \"SERVER,WEBAPP\" -c \"blue,green\" \"npm run server\" \"npm run client:start\"",
+    "client:start": "cd webapp && npm run start"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
   }
 }

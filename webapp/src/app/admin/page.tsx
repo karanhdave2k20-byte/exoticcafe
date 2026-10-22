@@ -112,7 +112,7 @@ export default function AdminPortalPage() {
               <h1>TableHive Café</h1>
               <p>Scan to join Table #${qrModalTable.id} shared dining session</p>
               <img src="${qrDataUrl}" width="280" height="280" />
-              <div class="footer">Exotic Café • Single-Table Collaborative Ordering</div>
+              <div class="footer">TableHive • Social Dining Platform</div>
             </div>
             <script>window.onload = () => { window.print(); window.close(); }</script>
           </body>
@@ -233,7 +233,7 @@ export default function AdminPortalPage() {
               </span>
             </div>
             <p className="text-xs text-muted mt-1">
-              Exotic Café Management Console • Administrator Session
+              TableHive Management Console • Administrator Session
             </p>
           </div>
         </div>

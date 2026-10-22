@@ -31,9 +31,7 @@ export default function MenuPage() {
 
   React.useEffect(() => {
     // On desktop screens, open AI Mitra by default so user gets the perfect side-by-side view (Left: AI Mitra, Right: Menu)!
-    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-      setIsLeftAiChatOpen(true);
-    }
+    setIsLeftAiChatOpen(false);
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('th_auto_open_mitra_topic');
       sessionStorage.removeItem('th_auto_open_music_mitra');

@@ -186,7 +186,7 @@ export default function FunHubPage() {
           </div>
           <div>
             <h3 className="text-base font-serif font-black text-roast-900">
-              The Table Hive Philosophy at Exotic Café
+              The TableHive Philosophy
             </h3>
             <p className="text-xs text-muted mt-1 leading-relaxed max-w-lg">
               Dining is inherently social. By turning each table into a collaborative hub, you and your companions order in sync, share dishes transparently, and split the bill effortlessly. All beans are sustainably sourced Arabica, roasted weekly in small batches.

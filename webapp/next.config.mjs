@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
+  webpack: (config, { dev }) => {
+    if (dev) {
+      // Disable webpack filesystem cache in dev to permanently avoid EBUSY file lock errors on Windows/OneDrive
+      config.cache = false;
+    }
+    return config;
+  },
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
     return [
