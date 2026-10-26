@@ -47,3 +47,12 @@ run_pinggy.cjs
 watch_tunnel.cjs
 .next/
 *.tsbuildinfo
+
+# Android & Capacitor
+.gradle/
+build/
+android/app/build/
+android/.gradle/
+**/android/.gradle/
+**/android/app/build/
+**/android/build/

@@ -7,7 +7,7 @@ import {
   Search, Mic, Star, Flame, Clock, Heart, Plus, Minus, 
   SlidersHorizontal, Sparkles, Filter, ChevronDown, Coffee, 
   Sparkle, Check, MessageSquare, User, Zap, Bot, Music, Headphones, ArrowRight,
-  Trophy, Film, Gamepad2, Newspaper, Video
+  Trophy, Film, Gamepad2, Newspaper, Video, ShoppingBag
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { MenuItem, ItemCustomization } from '../../types';
@@ -18,7 +18,7 @@ export default function MenuPage() {
   const { 
     mockMenu, cart, addToCart, updateQuantity, 
     isPureVeg, favorites, toggleFavorite, showToast, tableInfo,
-    currentSession, setIsLeftAiChatOpen
+    currentSession, setIsLeftAiChatOpen, isLeftAiChatOpen, cartTotal
   } = useStore();
 
   const activeInterests = (tableInfo?.interests && tableInfo.interests.length > 0)
@@ -31,7 +31,7 @@ export default function MenuPage() {
 
   React.useEffect(() => {
     // On desktop screens, open AI Mitra by default so user gets the perfect side-by-side view (Left: AI Mitra, Right: Menu)!
-    setIsLeftAiChatOpen(false);
+    setIsLeftAiChatOpen(true);
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('th_auto_open_mitra_topic');
       sessionStorage.removeItem('th_auto_open_music_mitra');
@@ -62,9 +62,9 @@ export default function MenuPage() {
 
   const moodBundles: Record<string, { title: string; subtitle: string; items: string[]; price: number; desc: string }> = {
     'Work Focus': {
-      title: 'Artisan Espresso + Avocado Truffle Toast',
+      title: 'Artisan Espresso + Grilled Pesto Panini',
       subtitle: '⚡ High Focus & Sustained Energy',
-      items: ['Artisan Espresso', 'Avocado Toast & Truffle Poached Egg'],
+      items: ['Artisan Espresso', 'Grilled Pesto Panini Sandwich'],
       price: 470,
       desc: 'Double shot antioxidant caffeine burst paired with rich healthy fats on sourdough.',
     },
@@ -76,11 +76,11 @@ export default function MenuPage() {
       desc: 'Velvety micro-foam cappuccino dusted in Valrhona cocoa with creamy vanilla bean cheesecake.',
     },
     'Clean Bites': {
-      title: 'Avocado Toast + Iced Salted Caramel',
+      title: 'Paneer Tikka Crostini + Iced Salted Caramel',
       subtitle: '🥗 Nutritious & Refreshingly Balanced',
-      items: ['Avocado Toast & Truffle Poached Egg', 'Iced Salted Caramel Frappé'],
+      items: ['Paneer Tikka Crostini', 'Iced Salted Caramel Frappé'],
       price: 600,
-      desc: 'Organic seed sourdough with Haas avocados and cold-dripped artisan caramel frappe.',
+      desc: 'Smokey tandoori marinated cottage cheese on crusty baguette paired with cold-dripped caramel frappe.',
     },
     'Decadent Sweet': {
       title: 'Toasted Hazelnut Latte + Fudge Brownie',
@@ -363,22 +363,29 @@ export default function MenuPage() {
         </div>
 
         {/* Mood Pill Buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {Object.entries(moodBundles).map(([key, data]) => {
             const isSelected = selectedMood === key;
             return (
               <button
                 key={key}
                 onClick={() => setSelectedMood(isSelected ? null : key)}
-                className={`p-2.5 rounded-2xl text-left border transition-all flex flex-col justify-between ${
+                className={`p-3 rounded-2xl text-left border transition-all flex flex-col justify-between gap-1 cursor-pointer select-none active:scale-95 ${
                   isSelected
-                    ? 'bg-caramel-500 text-white border-caramel-600 shadow-sm'
-                    : 'bg-white border-warm-border hover:border-caramel-500 text-roast-900'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-purple-500/40 scale-[1.02]'
+                    : 'bg-white border-slate-200 hover:border-purple-300 hover:bg-purple-50/30 text-slate-900 shadow-xs'
                 }`}
               >
-                <span className="text-xs font-bold">{key}</span>
-                <span className={`text-[10px] truncate ${isSelected ? 'text-white/80' : 'text-muted'}`}>
-                  {data.subtitle.split(' ')[0]}
+                <div className="flex items-center justify-between w-full">
+                  <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                    {key}
+                  </span>
+                  {isSelected && (
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+                  )}
+                </div>
+                <span className={`text-[11px] font-medium leading-tight ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {data.subtitle.split(' ')[0]} {key === 'Work Focus' ? 'Focus' : key === 'Cozy Date' ? 'Romantic' : key === 'Clean Bites' ? 'Healthy' : 'Dessert'}
                 </span>
               </button>
             );
@@ -387,26 +394,26 @@ export default function MenuPage() {
 
         {/* Expanded Active Mood Bundle Card */}
         {selectedMood && moodBundles[selectedMood] && (
-          <div className="p-4 rounded-2xl bg-white border border-caramel-400/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-slide-down">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-50/70 via-indigo-50/40 to-white border border-purple-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-slide-down">
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-caramel-700 block">
-                {moodBundles[selectedMood].subtitle}
-              </span>
-              <h4 className="font-serif font-bold text-base text-roast-900">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 border border-purple-200 text-[10px] uppercase font-extrabold tracking-wider text-purple-800 mb-1">
+                <span>{moodBundles[selectedMood].subtitle}</span>
+              </div>
+              <h4 className="font-serif font-black text-base sm:text-lg text-roast-900">
                 {moodBundles[selectedMood].title}
               </h4>
-              <p className="text-xs text-muted mt-0.5 max-w-md">
+              <p className="text-xs text-muted mt-1 max-w-lg leading-relaxed">
                 {moodBundles[selectedMood].desc}
               </p>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-              <span className="font-mono text-lg font-black text-caramel-700">
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-purple-100">
+              <span className="font-mono text-xl font-black text-purple-900">
                 ₹{moodBundles[selectedMood].price}
               </span>
               <button
                 onClick={() => handleAddMoodBundle(selectedMood)}
-                className="btn-primary py-2 px-5 text-xs font-bold shadow-gold"
+                className="btn-primary py-2.5 px-5 text-xs font-bold shadow-gold flex items-center gap-1.5 active:scale-95 transition-all"
               >
                 <span>Add Pair</span>
                 <Plus className="w-3.5 h-3.5" />
@@ -424,10 +431,10 @@ export default function MenuPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border ${
+              className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border cursor-pointer ${
                 isActive
-                  ? 'bg-caramel-600 text-white border-caramel-600 shadow-gold scale-105'
-                  : 'glass-card border-warm-border text-muted hover:text-roast-900 hover:border-caramel-500 bg-white'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-md scale-105'
+                  : 'bg-white border-slate-200 text-slate-700 hover:border-purple-400 hover:text-slate-900 shadow-xs'
               }`}
             >
               {cat}
@@ -466,7 +473,7 @@ export default function MenuPage() {
               <div
                 key={dish.id}
                 onClick={() => openDishModal(dish)}
-                className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between border border-warm-border hover:border-caramel-500/60 cursor-pointer group transition-all duration-300 hover:-translate-y-1 shadow-glass bg-white relative"
+                className="bg-white rounded-3xl overflow-hidden flex flex-col justify-between border border-[#EADDC7] hover:border-amber-400 cursor-pointer group transition-all duration-300 hover:-translate-y-1 shadow-card relative"
               >
                 {/* Image & Badges */}
                 <div className="relative w-full h-44 bg-[#F6F0E6] overflow-hidden">
@@ -532,7 +539,7 @@ export default function MenuPage() {
                 {/* Dish Description & Price */}
                 <div className="p-4 flex flex-col gap-2 flex-1 justify-between">
                   <div>
-                    <h3 className="font-serif font-bold text-base text-roast-900 group-hover:text-caramel-700 transition-colors">
+                    <h3 className="font-serif font-bold text-base text-slate-900 group-hover:text-espresso-700 transition-colors">
                       {dish.name}
                     </h3>
                     <p className="text-xs text-muted line-clamp-2 mt-1 leading-relaxed">
@@ -543,7 +550,7 @@ export default function MenuPage() {
                   <div className="flex items-center justify-between pt-3 border-t border-warm-border mt-2">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-muted uppercase font-bold">Price</span>
-                      <span className="text-lg font-black text-caramel-700 font-mono">
+                      <span className="text-lg font-black text-espresso-700 font-mono">
                         ₹{dish.price.toFixed(2)}
                       </span>
                     </div>
@@ -739,6 +746,39 @@ export default function MenuPage() {
           </div>
         )}
       </Modal>
+
+      {/* Floating Bottom Cart Bar (Screen 5 from TableHive Design Poster) */}
+      {cart.length > 0 && (
+        <div 
+          className={`fixed bottom-6 z-40 w-[92%] max-w-lg transition-all duration-300 ease-in-out animate-slide-up ${
+            isLeftAiChatOpen
+              ? 'left-1/2 -translate-x-1/2 lg:left-[calc(50%+205px)] xl:left-[calc(50%+215px)]'
+              : 'left-1/2 -translate-x-1/2'
+          }`}
+        >
+          <div className="bg-slate-900 text-white rounded-2xl p-3 px-5 shadow-2xl flex items-center justify-between border border-amber-500/30 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-extrabold text-amber-400 block tracking-wider">Table Cart</span>
+                <span className="text-sm font-bold text-white font-mono">
+                  {cart.reduce((s, i) => s + i.quantity, 0)} Items • ₹{cartTotal.toFixed(2)}
+                </span>
+              </div>
+            </div>
+            <Link
+              href="/cart"
+              className="btn-amber py-2.5 px-5 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-gold hover:scale-105 transition-transform"
+            >
+              <span>View Cart</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

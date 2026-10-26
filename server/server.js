@@ -398,18 +398,37 @@ app.post('/api/sessions/start', async (req, res) => {
         read: false
       });
     } else {
-      // Add any new members if not present
-      const existingNames = new Set(session.members.map(m => m.name.toLowerCase()));
-      const newMembers = members.filter(m => !existingNames.has(m.name.toLowerCase()));
-      if (newMembers.length > 0) {
+      // If party is being registered or updated with explicit guestNames from onboarding,
+      // override session members with the exact list the user entered!
+      if (guestNames && Array.isArray(guestNames) && guestNames.length > 0) {
+        session.members = members;
+        session.peopleCount = peopleCount || members.length;
+        session.splitPayments = members.map(m => ({ person: m.name, amount: 0, status: 'pending', method: '' }));
         await db.collection('table_sessions').updateOne(
           { sessionId: session.sessionId },
           { 
-            $push: { members: { $each: newMembers } },
-            $set: { updatedAt: new Date() }
+            $set: { 
+              members: session.members,
+              peopleCount: session.peopleCount,
+              splitPayments: session.splitPayments,
+              updatedAt: new Date() 
+            }
           }
         );
-        session.members.push(...newMembers);
+      } else {
+        // Add any new members if not present
+        const existingNames = new Set(session.members.map(m => m.name.toLowerCase()));
+        const newMembers = members.filter(m => !existingNames.has(m.name.toLowerCase()));
+        if (newMembers.length > 0) {
+          await db.collection('table_sessions').updateOne(
+            { sessionId: session.sessionId },
+            { 
+              $push: { members: { $each: newMembers } },
+              $set: { updatedAt: new Date() }
+            }
+          );
+          session.members.push(...newMembers);
+        }
       }
     }
 
@@ -968,8 +987,8 @@ app.post('/api/auth/invite', async (req, res) => {
 // 🤖 ENHANCED AI ENDPOINTS (Gemini Official SDK)
 // 1. AI Menu Assistant & Chat Companion
 app.post('/api/ai/chat', async (req, res) => {
+  const { messages } = req.body;
   try {
-    const { messages } = req.body;
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'Messages array is required.' });
     }
@@ -981,7 +1000,7 @@ app.post('/api/ai/chat', async (req, res) => {
 
     const db = getDb();
     const menuItems = await db.collection('menu').find({ isAvailable: true }).limit(20).toArray();
-    const menuSummary = menuItems.map(m => `- ${m.name} (${m.category}, ₹${m.price}, ${m.isVeg ? 'Veg' : 'Non-Veg'}): ${m.desc}`).join('\n');
+    const menuSummary = menuItems.map(m => `- ${m.name} (${m.category}, ${m.isVeg ? 'Veg' : 'Non-Veg'}): ${m.desc}`).join('\n');
 
     // Fetch latest real cricket context
     let cricketContext = "No current live international matches right now.";
@@ -998,24 +1017,34 @@ app.post('/api/ai/chat', async (req, res) => {
     const { GoogleGenerativeAI } = require('@google/generative-ai');
     const genAI = new GoogleGenerativeAI(apiKey.trim());
 
-    // Use gemini-flash-lite-latest for lightning-fast and reliable responses
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-flash-lite-latest',
-      systemInstruction: `You are TableHive's AI Mitra, the friendly café assistant & culinary companion at TableHive Café.
-You help customers seated at tables choose food, answer questions about flavor pairings, entertain them while they wait, and suggest delicious combinations.
-Current Café Menu:
+    const systemPrompt = `You are AI Mitra, the friendly and knowledgeable café companion at TableHive Café. You are warm, enthusiastic, and always give DETAILED, HELPFUL, and GENUINE answers.
+
+CAFÉ MENU AVAILABLE:
 ${menuSummary}
 
-Real Cricket Match Information:
+LIVE CRICKET INFORMATION:
 ${cricketContext}
 
-Rules:
-- Be warm, inviting, concise, and enthusiastic.
-- Recommend specific dishes from our menu whenever relevant.
-- If asked about cricket (match scores, records, predictions, live status), ALWAYS refer to the real cricket matches listed above! Do NOT fabricate fake match scores. Mention the real teams, their real scores, and current match situation, and enthusiastically recommend café snacks to cheer with (like Peri-Peri Fries, Loaded Nachos, and Artisan Cappuccino).
-- If asked for something spicy, suggest Peri-Peri Fries or Chipotle Veg Burger.
-- If asked for something sweet, suggest Dark Chocolate Fudge Brownie or Vanilla Bean Cheesecake.
-- Keep replies brief and conversational (2-4 sentences max unless asked for details).`,
+== CORE RULES ==
+
+1. MUSIC & SONGS — MOST IMPORTANT RULE:
+   When ANYONE asks about songs, music, trending tracks, new releases, Bollywood, Indie, Global hits — give a RICH, DETAILED list.
+   TOP 2024–2026 TRENDING SONGS:
+   🔥 BOLLYWOOD: "Aaj Ki Raat" & "Aayi Nai" (Stree 2), "Tauba Tauba" (Bad Newz - Karan Aujla), "Sajni Re" (Laapataa Ladies - Arijit Singh), "Angaaron" (Pushpa 2 - Shreya Ghoshal), "Naina" (Crew - Diljit Dosanjh), "Pehle Bhi Main" (Animal - Vishal Mishra).
+   ✨ INDIE POP: "Jo Tum Mere Ho" & "Husn" (Anuv Jain), "Tu Hai Kahaan" (AUR), "Ve Haaniyaan" (Danny, Avvy Sra), "Suniyan Suniyan" (Juss x MixSingh).
+   🌟 GLOBAL: "Die With A Smile" (Lady Gaga & Bruno Mars), "Espresso" (Sabrina Carpenter), "Birds of a Feather" (Billie Eilish).
+   Always mention the Music Feed tab and 6 live café radio stations!
+
+2. CRICKET: Use the LIVE CRICKET data above for real scores, match status, venue. Suggest Peri-Peri Fries as match snack.
+
+3. 100% PURE VEGETARIAN ONLY: TableHive Café is strictly 100% Pure Vegetarian. NEVER suggest or mention egg, poached egg, meat, chicken, fish, or any non-vegetarian items under any circumstances. Spicy→Peri-Peri Fries/Chipotle Veg Burger. Savory→Paneer Tikka Crostini/Pesto Panini. Sweet→Brownie/Cheesecake. Coffee→Hazelnut Latte/Cappuccino/Frappé. NEVER mention prices (₹).
+
+4. STYLE: 4-6 bullet points for music. Use emojis 🎵🔥☕🏏. Be enthusiastic and detailed for music/cricket!`;
+
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-flash-lite-latest',
+      generationConfig: { temperature: 0.85, maxOutputTokens: 600 },
+      systemInstruction: systemPrompt,
     });
 
     let sanitizedHistory = [];
@@ -1027,7 +1056,6 @@ Rules:
         expectedRole = expectedRole === 'user' ? 'model' : 'user';
       }
     }
-    // The history array must end with 'model' so the new user message appended by sendMessage is valid
     if (sanitizedHistory.length > 0 && sanitizedHistory[sanitizedHistory.length - 1].role === 'user') {
       sanitizedHistory.pop();
     }
@@ -1041,9 +1069,9 @@ Rules:
   } catch (error) {
     console.error('[AI CHAT] Using conversational fallback due to error:', error.message);
     
-    // Intelligent Fallback so AI Mitra always delights table guests instantly
-    const lastMsg = (messages[messages.length - 1]?.text || '').toLowerCase();
-    let fallbackReply = "Welcome to TableHive! I'm your AI Mitra. How can I delight your table today with fresh brew or culinary pairings?";
+    // Intelligent Fallback — messages is safely in outer scope now
+    const lastMsg = ((messages || [])[( messages || []).length - 1]?.text || '').toLowerCase();
+    let fallbackReply = "Welcome to TableHive! I'm your AI Mitra companion 🌟 Ask me about trending songs, live cricket scores, café food pairings, or anything else!";
 
     if (lastMsg.includes('cricket') || lastMsg.includes('match') || lastMsg.includes('score') || lastMsg.includes('win') || lastMsg.includes('t20')) {
       let liveText = "";
@@ -1057,17 +1085,19 @@ Rules:
       if (!liveText) {
         liveText = "🏏 **Real Live Cricket Update:** Fetching live match scores directly from stadium commentary.\n\n";
       }
-      fallbackReply = `${liveText}🔥 **Cheer Snack Recommendation:** Match the thrill with our hot **Crispy Peri-Peri Fries** (₹160) and an **Iced Salted Caramel Frappé** (₹280)!`;
-    } else if (lastMsg.includes('pair') || lastMsg.includes('snack') || lastMsg.includes('spicy') || lastMsg.includes('fries') || lastMsg.includes('burger')) {
-      fallbackReply = "🔥 For high-energy snacking, nothing beats our crispy **Peri-Peri Fries** paired with the smoky **Chipotle Veg Burger**! If you want a sweet crunch, try our **Avocado Toast & Truffle Poached Egg**.";
-    } else if (lastMsg.includes('music') || lastMsg.includes('song') || lastMsg.includes('lofi') || lastMsg.includes('lo-fi') || lastMsg.includes('jazz')) {
-      fallbackReply = "🎵 **Musical Harmony:** Acoustic & Lo-Fi frequencies stimulate your palate! We recommend pairing our smooth **Toasted Hazelnut Latte** (₹300) with a warm slice of **Dark Chocolate Fudge Brownie** while tuning in to our café Radio!";
+      fallbackReply = `${liveText}🔥 **Cheer Snack Recommendation:** Match the thrill with our hot **Crispy Peri-Peri Fries** and a chilled **Iced Salted Caramel Frappé**!`;
+    } else if (lastMsg.includes('music') || lastMsg.includes('song') || lastMsg.includes('lofi') || lastMsg.includes('lo-fi') || lastMsg.includes('jazz') || lastMsg.includes('bollywood') || lastMsg.includes('indie')) {
+      fallbackReply = "🎶 **Top Trending & New Songs (2025–2026):**\n\n• 🔥 **Aaj Ki Raat** (*Stree 2*) & **Tauba Tauba** (*Bad Newz*) – High-energy chartbusters!\n• 🎸 **Sajni Re** (*Laapataa Ladies*) & **Angaaron** (*Pushpa 2*) – Soulful & melodious hits.\n• ✨ **Jo Tum Mere Ho** & **Husn** (*Anuv Jain*) – Acoustic indie poetry perfect for café conversations.\n• 🌟 **Die With A Smile** (*Bruno Mars & Lady Gaga*) & **Espresso** (*Sabrina Carpenter*) – Global viral vibes!\n\nYou can explore all 12 trending tracks and tune in to our 6 live café radio streams right here in the **Music Feed** tab!";
     } else if (lastMsg.includes('sweet') || lastMsg.includes('dessert') || lastMsg.includes('cake') || lastMsg.includes('brownie')) {
-      fallbackReply = "🍰 Treat your sweet tooth with our decadent **Dark Chocolate Fudge Brownie** (₹220) served warm with Belgian ganache, or indulge in the velvety **Vanilla Bean Cheesecake** (₹350)!";
-    } else if (lastMsg.includes('coffee') || lastMsg.includes('drink') || lastMsg.includes('beverage')) {
-      fallbackReply = "☕ Our barista recommends the house-special **Table Hive Fiesta Combo** for tables, or the single-origin **Toasted Hazelnut Latte** crafted with freshly ground Arabica beans!";
+      fallbackReply = "🍰 Treat your sweet tooth with our decadent **Dark Chocolate Fudge Brownie** served warm with Belgian ganache, or indulge in the velvety **Vanilla Bean Cheesecake**!";
+    } else if (lastMsg.includes('pair') || lastMsg.includes('snack') || lastMsg.includes('spicy') || lastMsg.includes('fries') || lastMsg.includes('burger')) {
+      fallbackReply = "🔥 For high-energy snacking, nothing beats our crispy **Peri-Peri Fries** paired with the smoky **Chipotle Veg Burger**! If you want a savory bite, try our **Paneer Tikka Crostini**.";
+    } else if (lastMsg.includes('coffee') || lastMsg.includes('drink') || lastMsg.includes('beverage') || lastMsg.includes('latte') || lastMsg.includes('cappuccino')) {
+      fallbackReply = "☕ **TableHive Signature Brews:**\n\n• **Toasted Hazelnut Latte** — Single-origin Arabica espresso with warm roasted hazelnut notes — our #1 bestseller!\n• **Artisan Cappuccino** — Freshly pulled espresso with velvety microfoam and a cocoa dusting ☕\n• **Iced Salted Caramel Frappé** — Blended espresso, creamy milk & Himalayan salted caramel — perfect for hot days!\n• **Table Hive Fiesta Combo** — Our signature combo for the whole table with coffee + snacks!\n\nPair any coffee with our warm **Dark Chocolate Fudge Brownie** for the ultimate café experience! 🍫";
+    } else if (lastMsg.includes('food') || lastMsg.includes('menu') || lastMsg.includes('recommend') || lastMsg.includes('eat') || lastMsg.includes('dish')) {
+      fallbackReply = "🍽️ **TableHive Chef's Recommendations:**\n\n🔥 **Most Popular (100% Pure Veg):**\n• **Wood-fired Margherita Pizza** — San Marzano tomatoes, fresh mozzarella & sweet basil\n• **Crispy Peri-Peri Fries** — Spicy African herb blend, perfectly crispy\n• **Paneer Tikka Crostini** — Smokey tandoori cottage cheese on herb toasted baguette\n\n🍰 **Sweet Endings:**\n• **Dark Chocolate Fudge Brownie** — Warm, gooey, with Belgian ganache drizzle\n• **Vanilla Bean Cheesecake** — Silky smooth New York style\n\n💡 Tip: Our **Fiesta Combo** is perfect for sharing with your table!";
     } else {
-      fallbackReply = "✨ I'm here at your table! Try asking for our chef's bestsellers, live cricket score updates, music pairings, or tap any of the suggested questions right above!";
+      fallbackReply = "✨ **I'm AI Mitra, your TableHive companion!** Ask me anything:\n\n🎵 **Music** — Latest 2025–2026 trending songs & café playlist recommendations\n🏏 **Cricket** — Live match scores, player records & predictions\n🍽️ **Food** — Chef recommendations, spice pairings & dessert suggestions\n☕ **Coffee** — Artisan brew recommendations tailored to your mood\n\nWhat would you like to explore today? 😊";
     }
 
     return res.status(200).json({ reply: fallbackReply, fallback: true });
@@ -1144,13 +1174,19 @@ app.get('/api/ai/topic-news', async (req, res) => {
     }
   }
   
+  // 🎵 FAST MUSIC TOPIC RETURN
+  if (topic === 'Music' && !force) {
+    return res.status(200).json({ topic, news: fallbacks.Music });
+  }
+
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(apiKey.trim());
-      const model = genAI.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const prompt = `Generate 4 realistic, exciting, and trending news headlines with short 1-2 sentence summaries for "${topic}" enthusiasts dining at an artisanal café.
+If topic is Music, cover lo-fi beats, café acoustics, indie unplugged tracks, and coffeehouse radio trends.
 If topic is Cricket, include recent match results, IPL or international series highlights, top player performances, and upcoming fixtures.
 If topic is Movies, generate 8 exciting, real-time headlines covering all major film industries:
 1. Bollywood (Hindi cinema - e.g. Stree 2, Singham Again, SRK's King, Pathaan 2, Ramayana, Bhool Bhulaiyaa 3, Alpha)
@@ -1160,9 +1196,9 @@ If topic is Movies, generate 8 exciting, real-time headlines covering all major 
 If topic is News, cover top world, technology, and culinary innovations.
 If topic is Games, cover gaming releases, esports milestones, and puzzle trends.
 If topic is Short Videos, cover trending food ASMR reels, coffee brewing artistry, and viral café culture.
-Return ONLY valid JSON array with keys: title, summary, category (e.g. 'Bollywood', 'Tollywood', 'Hollywood', 'South Cinema', 'Box Office'), industry (e.g. 'Bollywood', 'South', 'Hollywood', 'Global'), source (e.g. 'Bollywood Hungama', 'Variety', 'Pinkvilla', 'Deadline', 'Cinema Express'), time (e.g. '15m ago', '40m ago', '1h ago', '3h ago').`;
+Return ONLY valid JSON array with keys: title, summary, category (e.g. 'Trending', 'Live Acoustic', 'Café Playlist', 'New Release'), time (e.g. '15m ago', '40m ago', '1h ago', '3h ago').`;
 
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('AI generation timeout')), 4500));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('AI generation timeout')), 2500));
       const result = await Promise.race([model.generateContent(prompt), timeoutPromise]);
       const text = result.response.text();
       const match = text.match(/\[[\s\S]*\]/);
@@ -1392,15 +1428,15 @@ app.post('/api/ai/recommendations', async (req, res) => {
         const genAI = new GoogleGenerativeAI(apiKey.trim());
         const model = genAI.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
 
-        const prompt = `Based on the following diner context, pick 3 best dishes from the menu and give a 1-sentence personalized reason for each.
+        const prompt = `TableHive is a 100% Pure Vegetarian café (no eggs, no meat). Based on the following diner context, pick 3 best vegetarian dishes from the menu and give a 1-sentence personalized reason for each.
 Context:
-- Pure Veg Only: ${isPureVeg ? 'YES' : 'NO'}
+- Pure Veg Only: YES
 - Diner Interests: ${(interests || []).join(', ') || 'General dining'}
 - Past Orders: ${(pastOrders || []).join(', ') || 'First-time visitor'}
 - Preferences: ${JSON.stringify(preferences || {})}
 
 Available Menu:
-${menuItems.map(m => `ID ${m.id}: ${m.name} (${m.category}, ₹${m.price}, ${m.isVeg ? 'Veg' : 'Non-Veg'}) - ${m.desc}`).join('\n')}
+${menuItems.filter(m => m.isVeg && !/egg|poached/i.test(m.name)).map(m => `ID ${m.id}: ${m.name} (${m.category}, ₹${m.price}, Pure Veg) - ${m.desc}`).join('\n')}
 
 Format response as strict JSON array with items having: "id" (number), "name" (string), "reason" (string).`;
 

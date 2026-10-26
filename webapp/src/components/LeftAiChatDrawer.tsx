@@ -76,10 +76,69 @@ interface SelectableQuestion {
 const getChatStorageKey = (tableNo: string | null) => `tablehive_chat_table_${tableNo || 'guest'}`;
 
 const RADIO_STREAMS: RadioTrack[] = [
-  { id: 'lofi', title: 'Chill Lounge & Lo-Fi', artist: 'I Love Radio', genre: 'Lo-Fi Chill', cover: '☕', url: 'https://streams.ilovemusic.de/iloveradio17.mp3' },
-  { id: 'ambient', title: 'Ambient Rain & Chill', artist: 'SomaFM DefCon', genre: 'Ambient Chill', cover: '🌧️', url: 'https://ice1.somafm.com/defcon-128-mp3' },
-  { id: 'acoustic', title: 'Acoustic Morning Blend', artist: 'Chillout Lounge', genre: 'Acoustic Blend', cover: '🥐', url: 'https://streams.ilovemusic.de/iloveradio14.mp3' },
-  { id: 'space', title: 'Deep Space Downtempo', artist: 'SomaFM Space Station', genre: 'Ambient Chill', cover: '✨', url: 'https://ice1.somafm.com/spacestation-128-mp3' },
+  { id: 'lofi', title: 'Chill Lounge & Lo-Fi', artist: 'I Love Radio Lo-Fi', genre: 'Lo-Fi Chill', cover: '☕', url: 'https://streams.ilovemusic.de/iloveradio17.mp3' },
+  { id: 'groove', title: 'Groove Salad Ambient', artist: 'SomaFM Ambient', genre: 'Downtempo Beats', cover: '🌿', url: 'https://ice1.somafm.com/groovesalad-128-mp3' },
+  { id: 'acoustic', title: 'Acoustic Morning Blend', artist: 'Chillout Lounge', genre: 'Acoustic Guitars', cover: '🥐', url: 'https://streams.ilovemusic.de/iloveradio14.mp3' },
+  { id: 'jazz', title: 'Smooth Coffeehouse Jazz', artist: 'SomaFM Sonic Universe', genre: 'Café Jazz & Sax', cover: '🎷', url: 'https://ice1.somafm.com/sonicuniverse-128-mp3' },
+  { id: 'bollywood', title: 'Bollywood Acoustic Hits', artist: 'Zeno Radio India', genre: 'Desi Acoustic Vibes', cover: '🎸', url: 'https://stream.zeno.fm/f3wvbbqmdg8uv' },
+  { id: 'ambient', title: 'Ambient Rain & Piano', artist: 'SomaFM DefCon', genre: 'Peaceful Ambient', cover: '🌧️', url: 'https://ice1.somafm.com/defcon-128-mp3' },
+];
+
+const DEFAULT_MUSIC_NEWS: TopicNewsItem[] = [
+  {
+    title: "Lo-Fi Beats Surpass 10 Billion Streams in Artisan Cafés Worldwide",
+    summary: "Ambient study and coffeehouse lo-fi beats reach an all-time high as acoustic dining spaces curate personalized customer listening sessions.",
+    category: "Trending Beats",
+    time: "Live Now"
+  },
+  {
+    title: "The Science of Coffee & Chords: Why Jazz Enhances Flavor",
+    summary: "Culinary psychology research shows mellow acoustic and jazz frequencies heighten taste receptors' perception of dark chocolate and espresso crema.",
+    category: "Flavor Science",
+    time: "Café Insight"
+  },
+  {
+    title: "Coldplay & Top Acoustic Artists Drop Exclusive Coffeehouse EP",
+    summary: "The band reveals surprise intimate acoustic pop-ups in select indie coffeehouses across global metropolises this season.",
+    category: "Live Acoustic",
+    time: "45m ago"
+  },
+  {
+    title: "Warm Analog Vinyl vs Digital: Why Cafés Are Choosing Lo-Fi",
+    summary: "New café acoustic studies demonstrate warm vintage audio textures increase table relaxation and enhance companion conversations.",
+    category: "Café Culture",
+    time: "2h ago"
+  }
+];
+
+interface TrendingSong {
+  id: string;
+  title: string;
+  artist: string;
+  movieOrAlbum: string;
+  category: 'Bollywood' | 'Indie Pop' | 'Global Hit';
+  tag: string;
+  year: string;
+  icon: string;
+  vibe: string;
+}
+
+const TRENDING_NEW_SONGS: TrendingSong[] = [
+  { id: 'aaj-ki-raat', title: 'Aaj Ki Raat', artist: 'Sachin-Jigar, Madhubanti Bagchi, Divya Kumar', movieOrAlbum: 'Stree 2', category: 'Bollywood', tag: 'CHARTBUSTER #1', year: '2025', icon: '🔥', vibe: 'High-Energy Dance Groove' },
+  { id: 'aayi-nai', title: 'Aayi Nai', artist: 'Pawan Singh, Simran Choudhary, Sachin-Jigar', movieOrAlbum: 'Stree 2', category: 'Bollywood', tag: 'VIRAL ANTHEM', year: '2025', icon: '💃', vibe: 'Desi Folk Beats' },
+  { id: 'tauba-tauba', title: 'Tauba Tauba', artist: 'Karan Aujla', movieOrAlbum: 'Bad Newz', category: 'Bollywood', tag: 'GLOBAL VIRAL', year: '2025', icon: '⚡', vibe: 'Punjabi Pop Beat' },
+  { id: 'sajni', title: 'Sajni Re', artist: 'Arijit Singh & Ram Sampath', movieOrAlbum: 'Laapataa Ladies', category: 'Bollywood', tag: 'SOULFUL ACOUSTIC', year: '2025', icon: '🎸', vibe: 'Pure Acoustic Romance' },
+  { id: 'jo-tum-mere-ho', title: 'Jo Tum Mere Ho', artist: 'Anuv Jain', movieOrAlbum: 'Indie Release', category: 'Indie Pop', tag: 'TRENDING ROMANCE', year: '2025', icon: '🎧', vibe: 'Warm Acoustic Guitars' },
+  { id: 'husn', title: 'Husn', artist: 'Anuv Jain', movieOrAlbum: 'Indie Release', category: 'Indie Pop', tag: '100M+ STREAMS', year: '2025', icon: '✨', vibe: 'Soul-Stirring Indie Poetry' },
+  { id: 'tu-hai-kahaan', title: 'Tu Hai Kahaan', artist: 'AUR', movieOrAlbum: 'Indie Pop', category: 'Indie Pop', tag: 'CHILL EMOTION', year: '2025', icon: '🌌', vibe: 'Mellow Indie Acoustic' },
+  { id: 've-haaniyaan', title: 'Ve Haaniyaan', artist: 'Danny, Avvy Sra, Sagar', movieOrAlbum: 'Indie Release', category: 'Indie Pop', tag: 'ROMANTIC VIRAL', year: '2025', icon: '💖', vibe: 'Melodious Acoustic' },
+  { id: 'suniyan-suniyan', title: 'Suniyan Suniyan', artist: 'Juss x MixSingh', movieOrAlbum: 'Indie Release', category: 'Indie Pop', tag: 'CHILL POP', year: '2025', icon: '🌙', vibe: 'Late Night Chill Vibes' },
+  { id: 'angaron', title: 'Angaaron (The Couple Song)', artist: 'Shreya Ghoshal & DSP', movieOrAlbum: 'Pushpa 2: The Rule', category: 'Bollywood', tag: 'BLOCKBUSTER', year: '2025', icon: '🕺', vibe: 'Folk-Pop Celebration' },
+  { id: 'naina', title: 'Naina', artist: 'Diljit Dosanjh & Badshah', movieOrAlbum: 'Crew', category: 'Bollywood', tag: 'GROOVY POP', year: '2025', icon: '🕶️', vibe: 'Smooth Club Pop' },
+  { id: 'pehle-bhi-main', title: 'Pehle Bhi Main', artist: 'Vishal Mishra & Raj Shekhar', movieOrAlbum: 'Animal', category: 'Bollywood', tag: 'MELODIC HIT', year: '2024–2025', icon: '🎶', vibe: 'Deep Emotional Melody' },
+  { id: 'die-with-a-smile', title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', movieOrAlbum: 'Global Single', category: 'Global Hit', tag: 'BILLBOARD #1', year: '2025', icon: '🌟', vibe: 'Classic Soul & Piano' },
+  { id: 'espresso-song', title: 'Espresso', artist: 'Sabrina Carpenter', movieOrAlbum: 'Short n Sweet', category: 'Global Hit', tag: 'VIRAL POP', year: '2025', icon: '☕', vibe: 'Funky Café Pop' },
+  { id: 'birds-feather', title: 'Birds of a Feather', artist: 'Billie Eilish', movieOrAlbum: 'HIT ME HARD AND SOFT', category: 'Global Hit', tag: 'CHILL ACOUSTIC', year: '2025', icon: '🕊️', vibe: 'Ethereal Melodic Chill' }
 ];
 
 interface MovieClip {
@@ -221,11 +280,13 @@ const TOPIC_QUESTIONS: Record<string, SelectableQuestion[]> = {
     { text: "Recommend an energizing drink for watching the final overs!", icon: "☕", category: "Beverage" },
   ],
   Music: [
-    { text: "Recommend the best coffee pairings for acoustic lo-fi vibes", icon: "☕", category: "Acoustic Pairing" },
-    { text: "Does sound frequency enhance dark chocolate & espresso sweetness?", icon: "🎧", category: "Flavor Science" },
-    { text: "Tell me about the global lo-fi café trend in artisan coffeehouses", icon: "📰", category: "Trend" },
-    { text: "What's our café's most relaxing dessert to enjoy with jazz?", icon: "🍰", category: "Dessert Match" },
-    { text: "Suggest upbeat snacks for an acoustic morning blend", icon: "🥐", category: "Morning Blend" },
+    { text: "What are the latest 2025–2026 trending new songs in Bollywood & Indie?", icon: "🔥", category: "New Song Releases" },
+    { text: "Suggest top trending acoustic and chill Lo-Fi songs to listen to", icon: "🎵", category: "Trending Tracks" },
+    { text: "Recommend soothing Bollywood unplugged & acoustic indie songs", icon: "🎸", category: "Bollywood Acoustic" },
+    { text: "What are the best soulful coffeehouse jazz melodies & saxophone tracks?", icon: "🎷", category: "Café Jazz" },
+    { text: "Recommend a peaceful acoustic playlist for our café conversation", icon: "🎧", category: "Chill Playlist" },
+    { text: "Which live radio station has the best acoustic vibe right now?", icon: "📻", category: "Live Radio" },
+    { text: "Suggest soulful songs by Prateek Kuhad, Anuv Jain, Jasleen & Arijit", icon: "🎶", category: "Indie Melodies" },
   ],
   News: [
     { text: "What are today's top world, culinary & technology headlines?", icon: "📰", category: "Top Stories" },
@@ -259,6 +320,61 @@ const TOPIC_QUESTIONS: Record<string, SelectableQuestion[]> = {
     { text: "What light and healthy vegetarian options do you recommend?", icon: "🥗", category: "Healthy Veg" },
   ]
 };
+
+function renderFormattedMessage(text: string, isUser: boolean) {
+  if (isUser) {
+    return <span className="whitespace-pre-wrap">{text}</span>;
+  }
+
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-1 whitespace-pre-wrap leading-relaxed text-slate-800">
+      {lines.map((line, lIdx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={lIdx} className="h-1" />;
+        }
+
+        const isBullet = trimmed.startsWith('•') || trimmed.startsWith('- ') || (trimmed.startsWith('* ') && !trimmed.startsWith('** '));
+        const cleanLine = isBullet ? trimmed.replace(/^[•\-\*]\s*/, '') : line;
+
+        const parts: React.ReactNode[] = [];
+        let remaining = cleanLine;
+        let pIdx = 0;
+        const tokenRegex = /(\*\*([^*]+)\*\*|\*([^*]+)\*)/;
+
+        while (remaining) {
+          const match = remaining.match(tokenRegex);
+          if (!match) {
+            parts.push(<span key={pIdx++}>{remaining}</span>);
+            break;
+          }
+          const matchIndex = match.index || 0;
+          if (matchIndex > 0) {
+            parts.push(<span key={pIdx++}>{remaining.slice(0, matchIndex)}</span>);
+          }
+          if (match[2]) {
+            parts.push(<strong key={pIdx++} className="font-extrabold text-slate-900">{match[2]}</strong>);
+          } else if (match[3]) {
+            parts.push(<span key={pIdx++} className="font-semibold text-purple-900 bg-purple-50 px-1 py-0.2 rounded border border-purple-200/60">{match[3]}</span>);
+          }
+          remaining = remaining.slice(matchIndex + match[0].length);
+        }
+
+        if (isBullet) {
+          return (
+            <div key={lIdx} className="flex items-start gap-1.5 pl-1 my-0.5">
+              <span className="text-purple-600 font-black text-xs select-none mt-0.5">•</span>
+              <div className="flex-1 min-w-0">{parts}</div>
+            </div>
+          );
+        }
+
+        return <div key={lIdx}>{parts}</div>;
+      })}
+    </div>
+  );
+}
 
 export default function LeftAiChatDrawer() {
   const router = useRouter();
@@ -297,12 +413,35 @@ export default function LeftAiChatDrawer() {
     }
   }, [tableInfo?.interests]);
 
-  const primaryTopic = activeInterests[0] || 'Cricket';
+  const primaryTopic = activeInterests[0] || 'Music';
 
   // In AI Mitra, default activeTab to 'chat' so questions and conversations are immediately visible!
   const [activeTab, setActiveTab] = useState<string>('chat');
-  // Selected question topic tab inside chat (e.g. Cricket, Music, Food)
-  const [selectedQuestionTopic, setSelectedQuestionTopic] = useState<string>(primaryTopic || 'Cricket');
+  // Selected question topic tab inside chat (dynamically matches user's active interest)
+  const [selectedQuestionTopic, setSelectedQuestionTopic] = useState<string>(primaryTopic || 'Music');
+
+  useEffect(() => {
+    if (primaryTopic) {
+      setSelectedQuestionTopic(primaryTopic);
+    }
+  }, [primaryTopic]);
+
+  // Dynamic quick prompts based strictly on the table's active interests
+  const quickPrompts = React.useMemo(() => {
+    const list: string[] = [];
+    const topicsToUse = activeInterests.length > 0 
+      ? activeInterests.filter(t => t !== 'AI Barista' && t !== 'AI Mitra') 
+      : ['Music'];
+
+    topicsToUse.forEach(t => {
+      const qList = TOPIC_QUESTIONS[t];
+      if (qList && qList.length > 0) {
+        qList.forEach(q => list.push(`${q.icon} ${q.text}`));
+      }
+    });
+
+    return Array.from(new Set(list));
+  }, [activeInterests]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -318,9 +457,12 @@ export default function LeftAiChatDrawer() {
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Universal Topic News State (Cached per topic)
-  const [topicNewsMap, setTopicNewsMap] = useState<Record<string, TopicNewsItem[]>>({});
+  // Universal Topic News State (Pre-seeded with instant Music news)
+  const [topicNewsMap, setTopicNewsMap] = useState<Record<string, TopicNewsItem[]>>({
+    Music: DEFAULT_MUSIC_NEWS
+  });
   const [isLoadingTopicNews, setIsLoadingTopicNews] = useState<Record<string, boolean>>({});
+  const [selectedSongCategory, setSelectedSongCategory] = useState<'All' | 'Bollywood' | 'Indie Pop' | 'Global Hit'>('All');
 
   // Cricket Specific State
   const [showCricketIframe, setShowCricketIframe] = useState(false);
@@ -608,11 +750,12 @@ export default function LeftAiChatDrawer() {
         '👻 Why is Stree 2 such a huge hit?'
       ];
     }
-    if (q.includes('music') || q.includes('lo-fi') || q.includes('song')) {
+    if (q.includes('music') || q.includes('lo-fi') || q.includes('song') || q.includes('artist') || q.includes('track') || q.includes('playlist') || q.includes('acoustic') || q.includes('jazz')) {
       return [
-        '🍰 Which dessert pairs with lo-fi beats?',
-        '☕ Tell me about Golden Crema Cappuccino',
-        '🎧 How does acoustic music enhance flavor?'
+        '🎵 Suggest top acoustic & Lo-Fi tracks',
+        '🎸 Recommend Bollywood unplugged & indie songs',
+        '🎷 Best relaxing café jazz melodies',
+        '📻 Which radio station do you recommend right now?'
       ];
     }
     if (q.includes('spicy') || q.includes('fries') || q.includes('burger')) {
@@ -694,8 +837,8 @@ export default function LeftAiChatDrawer() {
         fallbackReply = `🏏 Right now in live cricket: India and top international series are delivering electrifying action! Ask me about specific team match equations or players!`;
       } else if (q.includes('movie') || q.includes('film') || q.includes('cinema')) {
         fallbackReply = `🎬 Indian cinema is on fire right now! From Pushpa 2's mass trailer breaking records to Stree 2's historic ₹600 Cr box office run and Kalki 2898 AD's epic universe, there's so much to talk about!`;
-      } else if (q.includes('music') || q.includes('lo-fi')) {
-        fallbackReply = `🎵 Our café's Lo-Fi Lounge is playing live! Smooth acoustic and jazz chords naturally heighten taste receptors for dark chocolate and espresso crema.`;
+      } else if (q.includes('music') || q.includes('lo-fi') || q.includes('lofi') || q.includes('song') || q.includes('artist') || q.includes('track') || q.includes('playlist') || q.includes('acoustic') || q.includes('jazz') || q.includes('bollywood') || q.includes('indie') || q.includes('trending') || q.includes('new song')) {
+        fallbackReply = `🎶 **Top Trending & New Songs (2025–2026) — AI Mitra's Picks:**\n\n🔥 **Bollywood Chartbusters:**\n• "Aaj Ki Raat" & "Aayi Nai" — *Stree 2* (Sachin-Jigar) — High-energy dance anthem!\n• "Tauba Tauba" — *Bad Newz* (Karan Aujla) — Global Punjabi viral beat\n• "Sajni Re" — *Laapataa Ladies* (Arijit Singh) — Pure acoustic romance\n• "Angaaron" — *Pushpa 2* (Shreya Ghoshal & DSP) — Folk-pop blockbuster\n• "Pehle Bhi Main" — *Animal* (Vishal Mishra) — Deep emotional melody\n\n✨ **Indie Pop Gems:**\n• "Jo Tum Mere Ho" & "Husn" — *Anuv Jain* — Warm acoustic & soul-stirring poetry\n• "Tu Hai Kahaan" — *AUR* — Mellow late-night chill vibes\n• "Ve Haaniyaan" — *Danny, Avvy Sra* — Melodious romantic acoustic\n• "Suniyan Suniyan" — *Juss x MixSingh* — Lo-fi chill pop\n\n🌟 **Global Hits:**\n• "Die With A Smile" — *Lady Gaga & Bruno Mars* — Classic soul & piano ballad\n• "Espresso" — *Sabrina Carpenter* — Funky viral café pop ☕\n• "Birds of a Feather" — *Billie Eilish* — Ethereal melodic chill\n\n👉 Check the **Music Feed** tab to explore all 15 tracks with filters and tune into our **6 Live Café Radio Stations**!`;
       }
       const followUps = getFollowUpQuestions(rawQuery);
       setMessages(prev => [
@@ -734,13 +877,12 @@ export default function LeftAiChatDrawer() {
     }
   };
 
-  // Available topics for selectable questions
-  const availableQuestionTopics = [
-    ...(activeInterests.length > 0 ? activeInterests.filter(t => t !== 'AI Barista' && t !== 'AI Mitra') : ['Cricket', 'Music']),
-    'Food'
-  ];
+  // Available topics for selectable questions (strictly derived from user's choice)
+  const availableQuestionTopics = activeInterests.length > 0 
+    ? activeInterests.filter(t => t !== 'AI Barista' && t !== 'AI Mitra') 
+    : ['Music'];
 
-  const currentQuestions = TOPIC_QUESTIONS[selectedQuestionTopic] || TOPIC_QUESTIONS.Cricket || TOPIC_QUESTIONS.Food;
+  const currentQuestions = TOPIC_QUESTIONS[selectedQuestionTopic] || TOPIC_QUESTIONS[primaryTopic] || TOPIC_QUESTIONS.Music;
 
   // Tabs for the drawer: always [AI Chat] first, followed by topic feeds
   const availableTabs = [
@@ -954,29 +1096,45 @@ export default function LeftAiChatDrawer() {
               </div>
             )}
 
-            {/* Topic Category Switcher for Selectable Questions */}
-            <div className="px-3.5 py-2 bg-purple-50/80 border-b border-purple-100/70 flex items-center justify-between text-xs flex-shrink-0">
-              <span className="text-[11px] font-bold text-purple-900 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                <span>Selectable Questions:</span>
-              </span>
+            {/* Topic Category Switcher for Selectable Questions — auto-rotates every 20s */}
+            <div className="bg-purple-50/80 border-b border-purple-100/70 flex-shrink-0">
+              <div className="px-3.5 py-2 flex items-center justify-between text-xs">
+                <span className="text-[11px] font-bold text-purple-900 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Selectable Questions:</span>
+                </span>
 
-              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-                {availableQuestionTopics.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setSelectedQuestionTopic(t)}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all ${
-                      selectedQuestionTopic === t
-                        ? 'bg-purple-700 text-white shadow-xs'
-                        : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-100'
-                    }`}
-                  >
-                    {t === 'Cricket' ? '🏏 Cricket' : t === 'Music' ? '🎵 Music' : t === 'Food' ? '🍔 Food' : t}
-                  </button>
-                ))}
+                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                  {availableQuestionTopics.map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setSelectedQuestionTopic(t)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all ${
+                        selectedQuestionTopic === t
+                          ? 'bg-purple-700 text-white shadow-xs'
+                          : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-100'
+                      }`}
+                    >
+                      {t === 'Cricket' ? '🏏 Cricket' : t === 'Music' ? '🎵 Music' : t === 'Food' ? '🍔 Food' : t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Auto-rotate progress bar — resets every 20s */}
+              <div className="h-0.5 bg-purple-100 overflow-hidden">
+                <div
+                  key={selectedQuestionTopic}
+                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                  style={{ animation: 'autoRotateBar 20s linear forwards' }}
+                />
               </div>
             </div>
+            <style>{`
+              @keyframes autoRotateBar {
+                from { width: 0%; }
+                to   { width: 100%; }
+              }
+            `}</style>
 
             {/* Message Thread */}
             <div className="flex-1 overflow-y-auto px-3.5 py-3.5 space-y-3.5 bg-slate-50/40">
@@ -1010,7 +1168,7 @@ export default function LeftAiChatDrawer() {
                             : 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-none'
                         }`}
                       >
-                        {msg.text}
+                        {renderFormattedMessage(msg.text, isUser)}
                       </div>
                     </div>
 
@@ -1086,18 +1244,13 @@ export default function LeftAiChatDrawer() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Persistent Quick Prompt Bar */}
+            {/* Persistent Quick Prompt Bar (Dynamically matching selected interest) */}
             <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-200/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-shrink-0">
               <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1 uppercase tracking-wider flex-shrink-0">
                 <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
                 Ask:
               </span>
-              {[
-                "🏏 What is the live cricket match score and equation right now?",
-                "🍿 What snacks pair best with Indian cinema movies?",
-                "☕ What is your best-selling artisan coffee?",
-                "🍰 Suggest a decadent dessert for our table"
-              ].map((prompt, i) => (
+              {quickPrompts.map((prompt, i) => (
                 <button
                   key={i}
                   onClick={() => handleSendMessage(prompt)}
@@ -1119,7 +1272,11 @@ export default function LeftAiChatDrawer() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Ask AI Mitra about Indian cinema, cricket scores, café music..."
+                placeholder={
+                  activeInterests.length > 0
+                    ? `Ask AI Mitra about ${activeInterests.join(', ')} & café pairings...`
+                    : "Ask AI Mitra about coffee, desserts, music & recommendations..."
+                }
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isLoading}
@@ -1464,6 +1621,135 @@ export default function LeftAiChatDrawer() {
                     className="w-16 h-1 bg-purple-800/80 rounded-lg appearance-none cursor-pointer accent-amber-400"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Station Selector Grid */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h5 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Radio className="w-3.5 h-3.5 text-purple-600" />
+                  Select Café Radio Station ({RADIO_STREAMS.length})
+                </h5>
+                <span className="text-[10px] text-purple-700 font-semibold">Tap to switch & play</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {RADIO_STREAMS.map((station, idx) => {
+                  const isCurrent = currentTrackIndex === idx;
+                  return (
+                    <button
+                      key={station.id}
+                      onClick={() => handleSelectTrack(idx)}
+                      className={`p-2.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
+                        isCurrent
+                          ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white border-purple-600 shadow-sm ring-2 ring-purple-300'
+                          : 'bg-white hover:bg-purple-50/70 text-slate-800 border-slate-200/90 hover:border-purple-300 shadow-2xs'
+                      }`}
+                    >
+                      <span className="text-xl flex-shrink-0">{station.cover}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-xs font-bold truncate ${isCurrent ? 'text-white' : 'text-slate-900'}`}>
+                          {station.title}
+                        </p>
+                        <p className={`text-[10px] truncate ${isCurrent ? 'text-purple-200' : 'text-slate-500'}`}>
+                          {station.genre}
+                        </p>
+                      </div>
+                      {isCurrent && isPlaying && (
+                        <div className="flex items-end gap-0.5 h-3 flex-shrink-0">
+                          <span className="w-0.5 bg-amber-300 animate-equalizer-1" />
+                          <span className="w-0.5 bg-amber-300 animate-equalizer-2" />
+                          <span className="w-0.5 bg-amber-300 animate-equalizer-3" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 🔥 LATEST & TRENDING NEW SONGS (2025-2026) */}
+            <div className="space-y-3 pt-2 border-t border-slate-200/80">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-rose-500 fill-rose-500" />
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                    Trending & New Songs (2025–2026)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                  {TRENDING_NEW_SONGS.length} Hit Tracks
+                </span>
+              </div>
+
+              {/* Genre & Language Category Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                {(['All', 'Bollywood', 'Indie Pop', 'Global Hit'] as const).map((cat) => {
+                  const isCatActive = selectedSongCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedSongCategory(cat)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                        isCatActive
+                          ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-xs'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {cat === 'All' ? '🔥 All Songs' : cat}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Songs List */}
+              <div className="space-y-2">
+                {TRENDING_NEW_SONGS
+                  .filter(s => selectedSongCategory === 'All' || s.category === selectedSongCategory)
+                  .map((song) => (
+                    <div
+                      key={song.id}
+                      className="p-3 rounded-2xl bg-white border border-slate-200/90 hover:border-purple-300 shadow-2xs hover:shadow-xs transition-all flex flex-col gap-2 group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 font-bold flex items-center justify-center text-lg flex-shrink-0 border border-purple-100 group-hover:scale-105 transition-transform">
+                            {song.icon}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-bold text-xs text-slate-900 truncate group-hover:text-purple-700 transition-colors">
+                                {song.title}
+                              </h5>
+                              <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200/80 uppercase">
+                                {song.tag}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 truncate mt-0.5">
+                              {song.artist} • <span className="font-medium text-slate-500">{song.movieOrAlbum}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                        <span className="text-[10px] text-purple-700/90 font-semibold bg-purple-50/60 px-2 py-0.5 rounded-full">
+                          Vibe: {song.vibe}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setActiveTab('chat');
+                            handleSendMessage(`Tell me all about the hit song "${song.title}" by ${song.artist} from ${song.movieOrAlbum}! What makes it so trending, and what café beverage pairs with it?`);
+                          }}
+                          className="font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-all cursor-pointer"
+                        >
+                          <span>💬 Ask AI Mitra</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
 

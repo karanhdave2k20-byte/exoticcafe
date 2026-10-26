@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, User, ArrowRight, ArrowLeft, Sparkles, UserPlus, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
@@ -11,14 +11,47 @@ export default function PeopleCountPage() {
   const router = useRouter();
   const { tableInfo, startTableSession, showToast, user } = useStore();
 
+  const savedTableNo = typeof window !== 'undefined' ? localStorage.getItem('th_table_no') : null;
+  const currentTableNo = tableInfo?.tableNo || savedTableNo || '7';
+
   const [count, setCount] = useState<number>(tableInfo?.peopleCount || 2);
   const [step, setStep] = useState<1 | 2>(1);
 
   const initialNames = () => {
-    return [user?.n || user?.name || ''];
+    let name = user?.n || user?.name || '';
+    if (!name && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('th_user');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          name = parsed.n || parsed.name || '';
+        }
+      } catch (e) {}
+    }
+    return [name];
   };
 
   const [names, setNames] = useState<string[]>(initialNames());
+
+  useEffect(() => {
+    let userName = user?.n || user?.name || '';
+    if (!userName && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('th_user');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          userName = parsed.n || parsed.name || '';
+        }
+      } catch (e) {}
+    }
+    if (userName && (!names[0] || names[0] === '')) {
+      setNames(prev => {
+        const next = [...prev];
+        next[0] = userName;
+        return next;
+      });
+    }
+  }, [user]);
 
   const handleSelectCount = (num: number) => {
     setCount(num);
@@ -44,12 +77,11 @@ export default function PeopleCountPage() {
 
   const handleFinish = async () => {
     const cleanedNames = names.map(n => n.trim()).filter(Boolean);
-    const finalNames = cleanedNames.length > 0 ? cleanedNames : [user?.n || 'Guest'];
+    const finalNames = cleanedNames.length > 0 ? cleanedNames : [user?.n || user?.name || 'Guest'];
 
-    const tableNo = tableInfo?.tableNo || '1';
-    await startTableSession(tableNo, finalNames, count);
+    await startTableSession(currentTableNo, finalNames, count);
 
-    showToast(`Table #${tableNo} party registered with ${finalNames.length} guests! 🎉`, 'success');
+    showToast(`Table #${currentTableNo} party registered with ${finalNames.length} guests! 🎉`, 'success');
     router.push('/invite');
   };
 
@@ -74,7 +106,7 @@ export default function PeopleCountPage() {
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-caramel-50 border border-caramel-200 text-caramel-800 text-xs font-bold tracking-widest uppercase mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-caramel-600" />
-                <span>Table #{tableInfo?.tableNo || '05'} Session</span>
+                <span>Table #{currentTableNo} Session</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-serif font-black text-roast-900">
                 How many people are sitting at this table?
@@ -122,7 +154,7 @@ export default function PeopleCountPage() {
                 <span>Change party size ({count} guests)</span>
               </button>
               <h3 className="text-2xl font-serif font-black text-roast-900">
-                Who is seated at Table #{tableInfo?.tableNo || '05'}?
+                Who is seated at Table #{currentTableNo}?
               </h3>
               <p className="text-xs text-muted mt-1 max-w-sm mx-auto">
                 Enter names to attribute dishes in the shared cart and personalize order splits.

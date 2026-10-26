@@ -20,7 +20,8 @@ export default function InviteFriendsPage() {
   const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
-  const tableNo = tableInfo?.tableNo || '05';
+  const savedTableNo = typeof window !== 'undefined' ? localStorage.getItem('th_table_no') : null;
+  const tableNo = tableInfo?.tableNo || savedTableNo || '7';
   const sessionId = currentSession?.sessionId || '';
 
   const tableInviteUrl = typeof window !== 'undefined'

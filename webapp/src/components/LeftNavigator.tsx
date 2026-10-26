@@ -66,8 +66,8 @@ export default function LeftNavigator() {
 
   return (
     <>
-      {/* 1. Left Edge AI Chat Quick Tab (Only on mobile/tablet when rail is hidden) */}
-      {!isLeftAiChatOpen && (
+      {/* 1. Left Edge AI Chat Quick Tab (ONLY on /menu page) */}
+      {(!isLeftAiChatOpen && pathname === '/menu') && (
         <button
           onClick={() => setIsLeftAiChatOpen(true)}
           className="lg:hidden fixed left-0 top-1/2 -translate-y-1/2 z-40 flex items-center gap-2 pl-2.5 pr-3 py-2 bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-r-2xl shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-200 group border-y border-r border-purple-400/30"
@@ -87,35 +87,39 @@ export default function LeftNavigator() {
 
       {/* 2. Desktop Left Navigation Rail (Persistent sleek sidebar on lg+ screens) */}
       <aside className={`hidden lg:flex fixed left-0 top-[65px] bottom-0 z-30 w-16 ${isLeftAiChatOpen ? 'w-16' : 'hover:w-56'} bg-white/80 hover:bg-white backdrop-blur-xl border-r border-slate-200/90 flex-col justify-between py-4 transition-all duration-300 ease-in-out shadow-sm group overflow-hidden`}>
-        {/* Top: AI Chat Primary Feature Button */}
         <div className="px-2 space-y-3">
-          <button
-            onClick={() => setIsLeftAiChatOpen(prev => !prev)}
-            className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition-all duration-200 ${
-              isLeftAiChatOpen
-                ? 'bg-purple-600 text-white shadow-md'
-                : 'bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 text-purple-900 border border-purple-200/80 shadow-sm'
-            }`}
-            title="Open AI Mitra Chat"
-          >
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-hover:scale-105 ${
-              isLeftAiChatOpen ? 'bg-white text-purple-600' : 'bg-gradient-to-tr from-purple-600 to-indigo-600 text-white'
-            }`}>
-              <Bot className="w-4 h-4" />
-            </div>
+          {/* Top: AI Chat Primary Feature Button (ONLY on /menu page) */}
+          {pathname === '/menu' && (
+            <>
+              <button
+                onClick={() => setIsLeftAiChatOpen(prev => !prev)}
+                className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition-all duration-200 ${
+                  isLeftAiChatOpen
+                    ? 'bg-purple-600 text-white shadow-md'
+                    : 'bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 text-purple-900 border border-purple-200/80 shadow-sm'
+                }`}
+                title="Open AI Mitra Chat"
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-hover:scale-105 ${
+                  isLeftAiChatOpen ? 'bg-white text-purple-600' : 'bg-gradient-to-tr from-purple-600 to-indigo-600 text-white'
+                }`}>
+                  <Bot className="w-4 h-4" />
+                </div>
 
-            <div className="flex-1 text-left opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap overflow-hidden">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold leading-tight">AI Mitra</span>
-                <span className="px-1 py-0.2 rounded text-[9px] font-extrabold bg-purple-600 text-white leading-none">
-                  LIVE
-                </span>
-              </div>
-              <p className="text-[10px] text-purple-700/80 leading-tight">Café Mitra Companion</p>
-            </div>
-          </button>
+                <div className="flex-1 text-left opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap overflow-hidden">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold leading-tight">AI Mitra</span>
+                    <span className="px-1 py-0.2 rounded text-[9px] font-extrabold bg-purple-600 text-white leading-none">
+                      LIVE
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-purple-700/80 leading-tight">Café Mitra Companion</p>
+                </div>
+              </button>
 
-          <div className="h-px bg-slate-200 mx-1" />
+              <div className="h-px bg-slate-200 mx-1" />
+            </>
+          )}
 
           {/* Navigation Links */}
           <nav className="space-y-1">
@@ -266,15 +270,8 @@ export default function LeftNavigator() {
 
             {/* Mobile Footer */}
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between px-1">
-              <Link 
-                href="/admin" 
-                onClick={() => setIsLeftNavOpen(false)}
-                className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-purple-700"
-              >
-                <Shield className="w-4 h-4" />
-                Staff Admin
-              </Link>
-              <span className="text-[10px] text-slate-400 font-mono">v1.0 • TableHive</span>
+              <span className="text-xs font-bold text-slate-600">TableHive Café</span>
+              <span className="text-[10px] text-slate-400 font-mono">v1.0 • Social Dining</span>
             </div>
           </aside>
         </>

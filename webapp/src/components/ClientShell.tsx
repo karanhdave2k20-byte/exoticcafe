@@ -16,10 +16,10 @@ export default function ClientShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   
   // During table scan and onboarding steps, do not show Left Navigator rail
-  const isEnteringFlow = pathname === '/' || pathname === '/login' || pathname === '/people' || pathname === '/preference' || pathname === '/invite' || pathname.startsWith('/table/');
+  const isEnteringFlow = pathname === '/' || pathname === '/login' || pathname === '/people' || pathname === '/preference' || pathname === '/invite' || pathname.startsWith('/table/') || pathname.startsWith('/auth');
 
-  // Hide the FAB if we are on the full AI chat page, or if left AI chat is open, or during onboarding
-  const showFAB = pathname !== '/fun/ai-talk' && !isLeftAiChatOpen && !isEnteringFlow;
+  // AI Mitra option ONLY on /menu page as explicitly required
+  const showFAB = pathname === '/menu' && !isLeftAiChatOpen;
 
   return (
     <div className="min-h-screen flex flex-col relative pb-8">
@@ -28,15 +28,14 @@ export default function ClientShell({ children }: { children: ReactNode }) {
       {/* Left Navigation Rail & Drawer (Only after user enters table session) */}
       {!isEnteringFlow && <LeftNavigator />}
 
-      {/* Interactive Left-sliding AI Chat Drawer */}
-      <LeftAiChatDrawer />
+      {/* Interactive Left-sliding AI Chat Drawer (Only on /menu page) */}
+      {pathname === '/menu' && <LeftAiChatDrawer />}
 
       {/* Main Content Area: dynamically offsets on desktop when AI Mitra is open side-by-side */}
       <main 
-        className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 transition-all duration-300 ease-in-out ${
-          isEnteringFlow 
-            ? 'max-w-5xl' 
-            : isLeftAiChatOpen 
+        className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 min-w-0 overflow-x-hidden transition-all duration-300 ease-in-out ${
+          pathname === '/' ? 'max-w-[1920px] px-4 sm:px-6 lg:px-8' : isEnteringFlow ? 'max-w-5xl' 
+            : (isLeftAiChatOpen && pathname === '/menu')
               ? 'lg:pl-[490px] xl:pl-[510px] max-w-[1920px]' 
               : 'lg:pl-20 max-w-7xl'
         }`}
@@ -44,7 +43,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       
-      {/* Global AI Chatbot FAB - Opens the Left AI Chat directly */}
+      {/* Global AI Chatbot FAB - ONLY on /menu page */}
       {showFAB && (
         <button
           onClick={() => setIsLeftAiChatOpen(true)}

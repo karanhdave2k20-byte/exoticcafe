@@ -105,23 +105,33 @@ interface StoreContextType {
   toggleLeftNav: () => void;
 }
 
+const isPureVegItem = (item: any) => {
+  if (!item) return false;
+  if (item.id === 15) return false;
+  if (item.isVeg === false) return false;
+  const name = String(item.name || '');
+  const desc = String(item.desc || '');
+  if (/egg|poached|chicken|non-veg|meat/i.test(name)) return false;
+  if (/poached egg|soft egg/i.test(desc)) return false;
+  return true;
+};
+
 const defaultMenu: MenuItem[] = [
-  { id: 1, name: 'Crispy Peri-Peri Fries', category: 'Starters', price: 160, img: '/croissant.png', isVeg: true, rating: 4.8, prepTime: 8, desc: 'Golden potato fries tossed in zesty African peri-peri spice dust with garlic dip.', isAvailable: true, isPopular: true },
-  { id: 2, name: 'Paneer Tikka Crostini', category: 'Starters', price: 240, img: '/cheesecake.png', isVeg: true, rating: 4.9, prepTime: 10, desc: 'Smokey tandoori marinated cottage cheese on crusty herb toasted baguette.', isAvailable: true, isBestSeller: true },
-  { id: 3, name: 'Truffle Margherita Pizza', category: 'Pizza', price: 420, img: '/cheesecake.png', isVeg: true, rating: 4.8, prepTime: 15, desc: 'Slow-fermented sourdough crust, San Marzano pomodoro, Fior di Latte, and basil oil.', isAvailable: true, isPopular: true },
-  { id: 4, name: 'Smoked Farmhouse Pizza', category: 'Pizza', price: 460, img: '/cheesecake.png', isVeg: true, rating: 4.7, prepTime: 16, desc: 'Bell peppers, red onion, sun-dried tomatoes, roasted garlic, and mozzarella.', isAvailable: true },
-  { id: 5, name: 'Double Brioche Crunch Burger', category: 'Burger', price: 280, img: '/croissant.png', isVeg: true, rating: 4.6, prepTime: 12, desc: 'Charred patty, smoked cheddar melting center, house pickles, and truffle aioli.', isAvailable: true, isBestSeller: true },
-  { id: 6, name: 'Spicy Chipotle Veg Burger', category: 'Burger', price: 260, img: '/croissant.png', isVeg: true, rating: 4.5, prepTime: 11, desc: 'Crispy vegetable patty layered with smoky chipotle spread and crunchy iceberg.', isAvailable: true },
-  { id: 7, name: 'Grilled Pesto Panini Sandwich', category: 'Sandwich', price: 250, img: '/croissant.png', isVeg: true, rating: 4.7, prepTime: 9, desc: 'Genovese basil pesto, buffalo mozzarella, and vine ripened heirloom tomatoes.', isAvailable: true },
-  { id: 8, name: 'Creamy Alfredo Penne', category: 'Main Course', price: 380, img: '/croissant.png', isVeg: true, rating: 4.8, prepTime: 14, desc: 'Rich Parmesan cream sauce, roasted garlic florets, cracked pepper, and fresh parsley.', isAvailable: true, isPopular: true },
+  { id: 1, name: 'Crispy Peri-Peri Fries', category: 'Starters', price: 160, img: '/fries.jpg', isVeg: true, rating: 4.8, prepTime: 8, desc: 'Golden potato fries tossed in zesty African peri-peri spice dust with garlic dip.', isAvailable: true, isPopular: true },
+  { id: 2, name: 'Paneer Tikka Crostini', category: 'Starters', price: 240, img: '/crostini.jpg', isVeg: true, rating: 4.9, prepTime: 10, desc: 'Smokey tandoori marinated cottage cheese on crusty herb toasted baguette.', isAvailable: true, isBestSeller: true },
+  { id: 3, name: 'Truffle Margherita Pizza', category: 'Pizza', price: 420, img: '/margherita_pizza.jpg', isVeg: true, rating: 4.8, prepTime: 15, desc: 'Slow-fermented sourdough crust, San Marzano pomodoro, Fior di Latte, and basil oil.', isAvailable: true, isPopular: true },
+  { id: 4, name: 'Smoked Farmhouse Pizza', category: 'Pizza', price: 460, img: '/farmhouse_pizza.jpg', isVeg: true, rating: 4.7, prepTime: 16, desc: 'Bell peppers, red onion, sun-dried tomatoes, roasted garlic, and mozzarella.', isAvailable: true },
+  { id: 5, name: 'Double Brioche Crunch Burger', category: 'Burger', price: 280, img: '/burger.jpg', isVeg: true, rating: 4.6, prepTime: 12, desc: 'Charred patty, smoked cheddar melting center, house pickles, and truffle aioli.', isAvailable: true, isBestSeller: true },
+  { id: 6, name: 'Spicy Chipotle Veg Burger', category: 'Burger', price: 260, img: '/spicy_burger.jpg', isVeg: true, rating: 4.5, prepTime: 11, desc: 'Crispy vegetable patty layered with smoky chipotle spread and crunchy iceberg.', isAvailable: true },
+  { id: 7, name: 'Grilled Pesto Panini Sandwich', category: 'Sandwich', price: 250, img: '/panini.jpg', isVeg: true, rating: 4.7, prepTime: 9, desc: 'Genovese basil pesto, buffalo mozzarella, and vine ripened heirloom tomatoes.', isAvailable: true },
+  { id: 8, name: 'Creamy Alfredo Penne', category: 'Main Course', price: 380, img: '/penne_alfredo.jpg', isVeg: true, rating: 4.8, prepTime: 14, desc: 'Rich Parmesan cream sauce, roasted garlic florets, cracked pepper, and fresh parsley.', isAvailable: true, isPopular: true },
   { id: 9, name: 'Artisan Espresso', category: 'Beverages', price: 150, img: '/espresso.png', isVeg: true, rating: 4.8, prepTime: 5, desc: 'Rich double-shot extraction using hand-selected single-origin Arabica beans.', isAvailable: true, isPopular: true },
-  { id: 10, name: 'Golden Crema Cappuccino', category: 'Beverages', price: 250, img: '/latte.png', isVeg: true, rating: 4.9, prepTime: 7, desc: 'Silky micro-foam, velvety espresso, and a delicate dusting of Valrhona cocoa.', isAvailable: true, isBestSeller: true },
-  { id: 11, name: 'Iced Salted Caramel Frappé', category: 'Beverages', price: 280, img: '/latte.png', isVeg: true, rating: 4.7, prepTime: 6, desc: 'Chilled cold brew whipped with salted caramel, crushed ice, and Chantilly crema.', isAvailable: true, isBestSeller: true },
-  { id: 12, name: 'Dark Chocolate Fudge Brownie', category: 'Desserts', price: 220, img: '/cheesecake.png', isVeg: true, rating: 4.9, prepTime: 4, desc: 'Warm 70% Belgian chocolate center topped with warm ganache and sea salt flakes.', isAvailable: true, isPopular: true },
+  { id: 10, name: 'Golden Crema Cappuccino', category: 'Beverages', price: 250, img: '/cappuccino.png', isVeg: true, rating: 4.9, prepTime: 7, desc: 'Silky micro-foam, velvety espresso, and a delicate dusting of Valrhona cocoa.', isAvailable: true, isBestSeller: true },
+  { id: 11, name: 'Iced Salted Caramel Frappé', category: 'Beverages', price: 280, img: '/frappe.jpg', isVeg: true, rating: 4.7, prepTime: 6, desc: 'Chilled cold brew whipped with salted caramel, crushed ice, and Chantilly crema.', isAvailable: true, isBestSeller: true },
+  { id: 12, name: 'Dark Chocolate Fudge Brownie', category: 'Desserts', price: 220, img: '/brownie.jpg', isVeg: true, rating: 4.9, prepTime: 4, desc: 'Warm 70% Belgian chocolate center topped with warm ganache and sea salt flakes.', isAvailable: true, isPopular: true },
   { id: 13, name: 'Vanilla Bean Cheesecake', category: 'Desserts', price: 350, img: '/cheesecake.png', isVeg: true, rating: 4.9, prepTime: 5, desc: 'Creamy Madagascar vanilla cheesecake resting on a buttery honey-graham crust.', isAvailable: true, isNew: true },
-  { id: 14, name: 'TableHive Fiesta Combo', category: 'Combos', price: 599, img: '/cappuccino.png', isVeg: true, rating: 4.9, prepTime: 15, desc: 'Choice of 1 Pizza + 1 Brioche Burger + 2 Iced Beverages. Perfect for sharing!', isAvailable: true, isBestSeller: true },
-  { id: 15, name: 'Avocado Toast & Truffle Poached Egg', category: 'Starters', price: 320, img: '/croissant.png', isVeg: false, rating: 4.9, prepTime: 10, desc: 'Organic seed sourdough with Haas avocados and a soft truffle poached egg.', isAvailable: true, isNew: true },
-  { id: 16, name: 'Toasted Hazelnut Latte', category: 'Beverages', price: 300, img: '/latte.png', isVeg: true, rating: 4.8, prepTime: 6, desc: 'Roasted hazelnut infusion with velvety espresso and steamed milk.', isAvailable: true }
+  { id: 14, name: 'TableHive Fiesta Combo', category: 'Combos', price: 599, img: '/combo.jpg', isVeg: true, rating: 4.9, prepTime: 15, desc: 'Choice of 1 Pizza + 1 Brioche Burger + 2 Iced Beverages. Perfect for sharing!', isAvailable: true, isBestSeller: true },
+  { id: 16, name: 'Toasted Hazelnut Latte', category: 'Beverages', price: 300, img: '/hazelnut_latte.jpg', isVeg: true, rating: 4.8, prepTime: 6, desc: 'Roasted hazelnut infusion with velvety espresso and steamed milk.', isAvailable: true }
 ];
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -194,7 +204,16 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       if (savedAdmin) setAdminUser(JSON.parse(savedAdmin));
 
       const savedCart = localStorage.getItem('th_cart');
-      if (savedCart) setCart(JSON.parse(savedCart));
+      if (savedCart) {
+        try {
+          const parsed = JSON.parse(savedCart);
+          const sanitized = Array.isArray(parsed) ? parsed.filter(isPureVegItem) : [];
+          setCart(sanitized);
+          localStorage.setItem('th_cart', JSON.stringify(sanitized));
+        } catch (e) {
+          setCart([]);
+        }
+      }
 
       const savedOrderId = localStorage.getItem('th_order_id');
       if (savedOrderId) setCurrentOrderId(savedOrderId);
@@ -233,7 +252,22 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!isClient) return;
-    localStorage.setItem('th_user', JSON.stringify(user));
+    try {
+      if (!user) {
+        localStorage.removeItem('th_user');
+      } else {
+        const safeUser = {
+          n: typeof user.n === 'string' ? user.n : (typeof user.name === 'string' ? user.name : 'Guest'),
+          c: typeof user.c === 'string' ? user.c : (typeof user.email === 'string' ? user.email : ''),
+          email: typeof user.email === 'string' ? user.email : (typeof user.c === 'string' ? user.c : ''),
+          name: typeof user.name === 'string' ? user.name : (typeof user.n === 'string' ? user.n : 'Guest'),
+          isAuthenticated: Boolean(user.isAuthenticated),
+        };
+        localStorage.setItem('th_user', JSON.stringify(safeUser));
+      }
+    } catch (e) {
+      console.warn('Could not serialize user to localStorage:', e);
+    }
   }, [user, isClient]);
 
   useEffect(() => {
@@ -281,7 +315,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           if (data.payments) setAdminPayments(data.payments);
           if (data.bookings) setAdminBookings(data.bookings);
           if (data.waiterCalls) setWaiterCalls(data.waiterCalls);
-          if (data.menu && data.menu.length > 0) setMockMenu(data.menu);
+          if (data.menu && data.menu.length > 0) {
+            setMockMenu(data.menu.filter(isPureVegItem));
+          }
           if (data.notifications) setNotifications(data.notifications);
 
           // If seated at a table, refresh current session
@@ -289,9 +325,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             const tId = parseInt(String(tableInfo.tableNo));
             const active = (data.activeSessions || []).find((s: TableSession) => s.tableId === tId);
             if (active) {
-              setCurrentSession(active);
-              if (active.cart && active.cart.length > 0 && cart.length === 0) {
-                setCart(active.cart);
+              const cleanedCart = (active.cart || []).filter(isPureVegItem);
+              setCurrentSession({ ...active, cart: cleanedCart });
+              if (cleanedCart.length > 0 && cart.length === 0) {
+                setCart(cleanedCart);
               }
             }
           }
@@ -345,8 +382,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
       if (res.ok) {
         const data = await res.json();
-        setCurrentSession(data.session);
-        setCart(data.session.cart || []);
+        const cleanedCart = (data.session.cart || []).filter(isPureVegItem);
+        setCurrentSession({ ...data.session, cart: cleanedCart });
+        setCart(cleanedCart);
         setTableInfo(prev => ({
           ...prev,
           tableNo: String(tableNo),
@@ -435,6 +473,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   // Shared Cart Operations
   const addToCart = (product: MenuItem, customization?: ItemCustomization, forGuest?: string) => {
+    if (!isPureVegItem(product)) {
+      showToast('Only 100% Pure Vegetarian dishes are served!', 'info');
+      return;
+    }
     const additional = customization?.additionalPrice || 0;
     const finalPrice = product.price + additional;
     const guestAttribution = forGuest || user?.n || tableInfo.guestNames?.[0] || 'Me';

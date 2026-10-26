@@ -1,4 +1,4 @@
-﻿# TableHive - Collaborative Social Dining Platform
+# TableHive - Collaborative Social Dining Platform
 
 A premium, real-time social dining and café management platform built with React, Node.js, and MongoDB/Supabase. Customers scan a table QR code to start a collaborative table session, invite friends, vote on dishes, order together via a shared cart, split the bill, and track their order.
 
@@ -8,18 +8,13 @@ A premium, real-time social dining and café management platform built with Reac
 2. **Setup Database**:
    - Create a local MongoDB database or use MongoDB Atlas.
    - Put your connection URI under `MONGODB_URI` in the `server/.env` file.
-3. **Setup Backend**:
-   - `cd server`
-   - `npm install`
-   - `node server.js` (Running on port 3001)
-4. **Setup Simple Website**:
-   - `cd website`
-   - `npm install`
-   - `npm run dev` (Running on port 5173)
-5. **Setup Table Web App**:
-   - `cd webapp`
-   - `npm install`
-   - `npm run dev` (Running on port 5174)
+3. **Run Everything**:
+   - `npm run dev` (Starts Server on 3001, Customer App on 5174, and Admin Portal on 5175)
+
+4. **Or Run Individually**:
+   - **Backend API**: `cd server && node server.js` (Port 3001)
+   - **Customer Web App**: `cd webapp && npm run dev` (Port 5174)
+   - **Admin Portal**: `cd admin && npm run dev` (Port 5175)
 
 ## 📱 Key Features
 
@@ -47,7 +42,7 @@ A premium, real-time social dining and café management platform built with Reac
 
 ## 👮 Admin Roles & Access
 
-Access the Admin Panel at `http://localhost:5173/admin`. The system supports role-based management:
+Access the Admin Panel at `http://localhost:5175`. The system supports role-based management:
 
 | Role | Username | Password | Access Level |
 | :--- | :--- | :--- | :--- |

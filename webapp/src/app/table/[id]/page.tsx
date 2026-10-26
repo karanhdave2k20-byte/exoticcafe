@@ -70,13 +70,13 @@ function TableContent() {
         } catch (e) {}
 
         // Set table in context
-        setTableInfo(prev => ({ ...prev, tableNo: tableId }));
+        setTableInfo(prev => ({ ...prev, tableNo: tableId })); if (typeof window !== 'undefined') { localStorage.setItem('th_table_no', String(tableId)); }
 
         if (!isInvite && data && (data.status === 'Occupied' || data.status === 'Reserved')) {
           setIsOccupied(true);
         }
       } catch (err) {
-        setTableInfo(prev => ({ ...prev, tableNo: tableId }));
+        setTableInfo(prev => ({ ...prev, tableNo: tableId })); if (typeof window !== 'undefined') { localStorage.setItem('th_table_no', String(tableId)); }
       } finally {
         setIsLoading(false);
       }
